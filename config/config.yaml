@@ -1,0 +1,51 @@
+paths:
+  raw_sgcc_csv: "data/raw/sgcc_data.csv"
+  raw_precon_dir: "data/raw/precon/"
+  processed_dir: "data/processed/"
+  checkpoints_dir: "models/checkpoints/"
+
+preprocessing:
+  outlier_sigma_cap: 2          # cap at mu + 2*sigma (matches "3-sigma rule" naming in literature,
+                                 # but the actual cap multiplier is 2 -- verify against your source
+                                 # paper before changing; this field being wrong once already caused
+                                 # a spec contradiction, don't repeat it)
+  scale_range: [0, 1]
+  val_split: 0.15
+  test_split: 0.15
+  smote_on_train_only: true      # NEVER set this true for val/test — leaks synthetic data into eval
+  random_seed: 42
+
+consumer_type_proxy:
+  method: "consumption_magnitude"   # heuristic — no real label exists in SGCC
+  daily_kwh_industrial_threshold: 500   # customers averaging above this are routed to Industrial Agent
+
+channels:
+  use_raw: true
+  use_autoencoder_residual: true
+  use_pretext_embedding: true
+  use_frequency_projection: true
+  freeze_after_pretrain: true    # do not jointly fine-tune -- overfitting risk on 3,615 positives
+
+residential_model:
+  cnn_filters: 64
+  cnn_kernel_size: 3
+  lstm_hidden_units: 128
+  dropout: 0.3
+  batch_size: 64
+  epochs: 30
+  learning_rate: 0.001
+  early_stopping_patience: 5
+
+industrial_model:
+  autoencoder_latent_dim: 32
+  batch_size: 32
+  epochs: 40
+  learning_rate: 0.0005
+  tau_percentile: 95   # tau = 95th percentile of reconstruction error on verified-normal validation set
+
+scoring:
+  theft_probability_threshold: 0.65   # justify this in your report -- do not leave it unexplained
+
+api:
+  host: "0.0.0.0"
+  port: 8000

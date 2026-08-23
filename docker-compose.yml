@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  trainer:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./config:/app/config
+    environment:
+      - CONFIG_PATH=config/config.yaml
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./config:/app/config
+    environment:
+      - CONFIG_PATH=config/config.yaml
+    command: uvicorn src.api.app:app --host 0.0.0.0 --port 8000
+
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    command: streamlit run dashboard/app.py --server.address 0.0.0.0
