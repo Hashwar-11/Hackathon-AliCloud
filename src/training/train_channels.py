@@ -33,14 +33,18 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    # Dedicated hyperparameters for the auxiliary nets (used to borrow the
+    # residential_model block — §9). Falls back to it if the section is absent.
+    ch = cfg.get("channel_training", cfg["residential_model"])
+
     # Channel 2 — autoencoder trained ONLY on confirmed-normal rows (y==0)
     X_normal = X_train[torch.tensor(y_train == 0)]
     autoencoder = ResidualAutoencoder(seq_len=seq_len)
     autoencoder = train_on_normals(
         autoencoder, X_normal,
-        epochs=cfg["residential_model"]["epochs"],
-        lr=cfg["residential_model"]["learning_rate"],
-        batch_size=cfg["residential_model"]["batch_size"],
+        epochs=ch["epochs"],
+        lr=ch["learning_rate"],
+        batch_size=ch["batch_size"],
         device=device,
     )
     torch.save(autoencoder.state_dict(), os.path.join(ckpt_dir, "autoencoder_channel.pt"))
@@ -49,9 +53,9 @@ def main():
     pretext = MaskedPretextEncoder(seq_len=seq_len)
     pretext = train_pretext(
         pretext, X_train,
-        epochs=cfg["residential_model"]["epochs"],
-        lr=cfg["residential_model"]["learning_rate"],
-        batch_size=cfg["residential_model"]["batch_size"],
+        epochs=ch["epochs"],
+        lr=ch["learning_rate"],
+        batch_size=ch["batch_size"],
         device=device,
     )
     torch.save(pretext.state_dict(), os.path.join(ckpt_dir, "pretext_channel.pt"))
@@ -60,9 +64,9 @@ def main():
     freq_proj = FrequencyProjection(seq_len=seq_len)
     freq_proj = train_frequency_projection(
         freq_proj, X_train,
-        epochs=cfg["residential_model"]["epochs"],
-        lr=cfg["residential_model"]["learning_rate"],
-        batch_size=cfg["residential_model"]["batch_size"],
+        epochs=ch["epochs"],
+        lr=ch["learning_rate"],
+        batch_size=ch["batch_size"],
         device=device,
     )
     torch.save(freq_proj.state_dict(), os.path.join(ckpt_dir, "frequency_channel.pt"))

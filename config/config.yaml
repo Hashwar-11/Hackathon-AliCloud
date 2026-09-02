@@ -1,5 +1,7 @@
 paths:
-  raw_sgcc_csv: "data/raw/sgcc_data.csv"
+  raw_sgcc_csv: "data/raw/recovered/data.csv"   # COMPLETE 42,372-row copy. NEVER use
+                                                  # data/raw/sgcc_data.csv — that file is the
+                                                  # TRUNCATED 33,841-row extraction (§4.1).
   raw_precon_dir: "data/raw/precon/"
   processed_dir: "data/processed/"
   checkpoints_dir: "models/checkpoints/"
@@ -17,7 +19,10 @@ preprocessing:
 
 consumer_type_proxy:
   method: "consumption_magnitude"   # heuristic — no real label exists in SGCC
-  daily_kwh_industrial_threshold: 500   # customers averaging above this are routed to Industrial Agent
+  daily_kwh_industrial_threshold: 500   # customers averaging above this are routed to Industrial Agent.
+                                        # NOTE: at 500 only ~37 accounts qualify (~12 normal), so the
+                                        # industrial detector's results are statistically unreliable.
+                                        # Kept at 500 deliberately for the honest staged benchmark.
 
 channels:
   use_raw: true
@@ -25,6 +30,11 @@ channels:
   use_pretext_embedding: true
   use_frequency_projection: true
   freeze_after_pretrain: true    # do not jointly fine-tune -- overfitting risk on 3,615 positives
+
+channel_training:                # training hyperparameters for the 3 auxiliary channel nets
+  epochs: 15                     # (previously the residential_model block was reused for these)
+  learning_rate: 0.001
+  batch_size: 128
 
 residential_model:
   cnn_filters: 64
