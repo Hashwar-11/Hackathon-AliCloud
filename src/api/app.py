@@ -13,21 +13,32 @@ from contextlib import asynccontextmanager
 from typing import Optional, List, Dict, Any
 
 import numpy as np
-import torch
 import yaml
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
-from src.channels.autoencoder_channel import ResidualAutoencoder
-from src.channels.pretext_channel import MaskedPretextEncoder
-from src.channels.frequency_channel import FrequencyProjection
-from src.channels.stack_channels import build_channel_stack
-from src.agents.residential.model import ResidentialModel
-from src.agents.industrial.model import IndustrialAutoencoder
 from src.agents.verification.verify import CustomerContext
-from src.agents.coordinator.coordinator import coordinate, coordinate_batch, ScoringResult
+from src.agents.coordinator.coordinator import coordinate, coordinate_batch, aggregate_results, ScoringResult
 from src.preprocessing.transform_single import transform_daily_series
+from sqlalchemy.orm import Session
+from src.db import get_db, init_db, utcnow
+from src.models_db import Inspection, InspectionFeedback
+
+# torch and the neural channel/agent modules are imported LAZILY (see
+# _try_load_models). On a constrained host -- e.g. an 8 GB demo laptop with little
+# free RAM -- `import torch` itself can raise MemoryError. The service is designed to
+# degrade gracefully to the calibrated statistical fallback engine in that case
+# rather than refusing to boot, so the import is guarded here.
+try:
+    import torch
+    TORCH_AVAILABLE = True
+    _TORCH_IMPORT_ERROR = ""
+except Exception as _torch_exc:  # ImportError, MemoryError, OSError, ...
+    torch = None
+    TORCH_AVAILABLE = False
+    _TORCH_IMPORT_ERROR = f"{type(_torch_exc).__name__}: {_torch_exc}"
 
 # ---------------------------------------------------------------------------
 # Configuration & Global State
@@ -45,7 +56,7 @@ else:
         "scoring": {"theft_probability_threshold": 0.65},
     }
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if (TORCH_AVAILABLE and torch.cuda.is_available()) else "cpu"
 CKPT_DIR = CFG.get("paths", {}).get("checkpoints_dir", "models/checkpoints/")
 SEQ_LEN = 1034  # True SGCC day count
 
@@ -57,11 +68,25 @@ RESIDENTIAL_MODEL = None
 INDUSTRIAL_MODEL = None
 INDUSTRIAL_TAU = 0.0334
 ACTIVE_CHANNELS = 1
+BUILD_CHANNEL_STACK = None  # lazily bound to src.channels.stack_channels.build_channel_stack
 
 
 def _try_load_models():
-    global MODELS_LOADED, AUTOENCODER, PRETEXT, FREQ_PROJ, RESIDENTIAL_MODEL, INDUSTRIAL_MODEL, INDUSTRIAL_TAU, ACTIVE_CHANNELS
+    global MODELS_LOADED, AUTOENCODER, PRETEXT, FREQ_PROJ, RESIDENTIAL_MODEL, INDUSTRIAL_MODEL, INDUSTRIAL_TAU, ACTIVE_CHANNELS, BUILD_CHANNEL_STACK
+    if not TORCH_AVAILABLE:
+        print(f"[API] torch unavailable ({_TORCH_IMPORT_ERROR}). Statistical fallback engine enabled.")
+        MODELS_LOADED = False
+        return
     try:
+        # Lazy neural imports: only reached when torch imported successfully.
+        from src.channels.autoencoder_channel import ResidualAutoencoder
+        from src.channels.pretext_channel import MaskedPretextEncoder
+        from src.channels.frequency_channel import FrequencyProjection
+        from src.channels.stack_channels import build_channel_stack
+        from src.agents.residential.model import ResidentialModel
+        from src.agents.industrial.model import IndustrialAutoencoder
+        BUILD_CHANNEL_STACK = build_channel_stack
+
         ae_path = os.path.join(CKPT_DIR, "autoencoder_channel.pt")
         pt_path = os.path.join(CKPT_DIR, "pretext_channel.pt")
         fq_path = os.path.join(CKPT_DIR, "frequency_channel.pt")
@@ -139,6 +164,7 @@ def _try_load_models():
 # ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_db()  # ensure the durable inspection tables exist before serving traffic
     _try_load_models()
     yield
 
@@ -158,9 +184,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory stores for inspection queue & feedback logs
-INSPECTION_TICKETS: Dict[str, Dict[str, Any]] = {}
-INSPECTION_FEEDBACK: List[Dict[str, Any]] = []
+# Inspection tickets & feedback are persisted in the database (src/models_db.py)
+# so the ground-truth history survives API restarts. A session is injected into
+# each request via Depends(get_db) -- there is no module-level mutable state.
 
 # ---------------------------------------------------------------------------
 # Pydantic Schemas
@@ -225,7 +251,7 @@ class InspectionActionRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Scoring Helper Functions
 # ---------------------------------------------------------------------------
-def _score_single_internal(req: PredictRequest) -> ScoringResult:
+def _score_single_internal(req: PredictRequest, threshold_override: Optional[float] = None) -> ScoringResult:
     # 1. Transform sequence with identical train pipeline
     scaled_series, raw_mean, inferred_type = transform_daily_series(
         req.daily_kwh, target_seq_len=SEQ_LEN
@@ -245,14 +271,14 @@ def _score_single_internal(req: PredictRequest) -> ScoringResult:
         ctx_kwargs["recent_30d_mean_kwh"] = float(np.nanmean(recent_chunk)) if len(recent_chunk) > 0 else 0.0
 
     context = CustomerContext(consumer_id=req.consumer_id, **ctx_kwargs)
-    threshold = CFG.get("scoring", {}).get("theft_probability_threshold", 0.65)
+    threshold = threshold_override if threshold_override is not None else CFG.get("scoring", {}).get("theft_probability_threshold", 0.65)
 
     # 3. Model Inference or Calibrated Statistical Engine
-    if MODELS_LOADED and RESIDENTIAL_MODEL is not None and INDUSTRIAL_MODEL is not None:
-        x_tensor = torch.tensor([scaled_series], dtype=torch.float32).to(DEVICE)
+    if MODELS_LOADED and torch is not None and BUILD_CHANNEL_STACK is not None and RESIDENTIAL_MODEL is not None and INDUSTRIAL_MODEL is not None:
+        x_tensor = torch.from_numpy(np.ascontiguousarray(scaled_series, dtype=np.float32)).unsqueeze(0).to(DEVICE)
         
         if ACTIVE_CHANNELS == 4 and AUTOENCODER and PRETEXT and FREQ_PROJ:
-            stacked = build_channel_stack(
+            stacked = BUILD_CHANNEL_STACK(
                 x_tensor,
                 AUTOENCODER,
                 PRETEXT,
@@ -272,24 +298,43 @@ def _score_single_internal(req: PredictRequest) -> ScoringResult:
             err = float(INDUSTRIAL_MODEL.reconstruction_error(stacked).item())
             return coordinate(req.consumer_id, "industrial", industrial_reconstruction_error=err, industrial_tau=INDUSTRIAL_TAU, context=context, threshold=threshold)
     else:
-        # Calibrated Statistical & Heuristic Feature Engine (Zero-Drop & Volatility Ratio)
+        # Calibrated Statistical & Heuristic Feature Engine (Zero-Drop & Volatility Ratio).
+        # There is NO industrial autoencoder in fallback mode, so an industrial account
+        # is scored with the same residential heuristic. We must NOT pass
+        # consumer_type="industrial" to coordinate() here -- that path requires a
+        # reconstruction error + tau and would raise ValueError (HTTP 500). Score via
+        # the probability path, then restore the type label with an honesty note.
         drop_ratio = max(0.0, 1.0 - (context.recent_30d_mean_kwh / max(context.historical_mean_kwh, 1e-4)))
         recent_readings = np.array(req.daily_kwh[-60:]) if len(req.daily_kwh) >= 60 else np.array(req.daily_kwh)
         zero_days_pct = float(np.mean(recent_readings <= 0.05)) if len(recent_readings) > 0 else 0.0
         synthetic_raw_score = min(0.98, max(0.02, 0.65 * drop_ratio + 0.35 * zero_days_pct))
 
-        return coordinate(
+        result = coordinate(
             consumer_id=req.consumer_id,
-            consumer_type=client_type,
+            consumer_type="residential",   # probability path; industrial AE unavailable
             residential_probability=synthetic_raw_score,
             context=context,
             threshold=threshold,
         )
+        if client_type != "residential":
+            result.consumer_type = client_type
+            result.reasons = list(result.reasons) + [
+                f"{client_type.capitalize()} account scored by the statistical fallback "
+                "heuristic (industrial autoencoder checkpoint unavailable)."
+            ]
+        return result
 
 
 # ---------------------------------------------------------------------------
 # API Endpoints
 # ---------------------------------------------------------------------------
+@app.get("/", include_in_schema=False)
+def root():
+    """Landing route so http://localhost:8000/ does NOT 404 -- it sends you to the
+    interactive API docs (Swagger UI) where every endpoint can be tried live."""
+    return RedirectResponse(url="/docs")
+
+
 @app.get("/api/v1/health", tags=["System"])
 def health_check():
     return {
@@ -316,7 +361,7 @@ def model_info():
 
 @app.post("/api/v1/predict/single", response_model=PredictResponse, tags=["Inference"])
 @app.post("/predict", response_model=PredictResponse, tags=["Inference"])
-def predict_single(req: PredictRequest):
+def predict_single(req: PredictRequest, db: Session = Depends(get_db)):
     """
     Score a single consumer account using the end-to-end multi-agent pipeline.
     """
@@ -325,20 +370,22 @@ def predict_single(req: PredictRequest):
 
     result = _score_single_internal(req)
 
-    # Auto-register in inspection tickets if suspect
+    # Auto-register a dispatch ticket (persisted) when the account is a suspect.
     if result.is_theft_suspect:
         ticket_id = f"TCK-{req.consumer_id[:8]}-{int(time.time()) % 10000}"
-        INSPECTION_TICKETS[ticket_id] = {
-            "ticket_id": ticket_id,
-            "consumer_id": result.consumer_id,
-            "feeder_id": result.feeder_id,
-            "theft_probability": result.verified_theft_probability,
-            "risk_tier": result.risk_tier,
-            "action_recommendation": result.action_recommendation,
-            "estimated_loss_currency": result.financial_impact.get("estimated_monthly_loss_currency", 0.0),
-            "status": "PENDING_DISPATCH",
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        }
+        exists = db.query(Inspection).filter(Inspection.ticket_id == ticket_id).first()
+        if exists is None:
+            db.add(Inspection(
+                ticket_id=ticket_id,
+                consumer_id=result.consumer_id,
+                feeder_id=result.feeder_id,
+                theft_probability=result.verified_theft_probability,
+                risk_tier=result.risk_tier,
+                action_recommendation=result.action_recommendation,
+                estimated_loss_currency=result.financial_impact.get("estimated_monthly_loss_currency", 0.0),
+                status="PENDING_DISPATCH",
+            ))
+            db.commit()
 
     return PredictResponse(
         consumer_id=result.consumer_id,
@@ -360,27 +407,20 @@ def predict_batch(req: BatchPredictRequest):
     """
     Batch score multiple consumer accounts across feeders.
     Returns prioritized inspection queue and feeder loss summary.
+
+    Every account is scored by the SAME single-account pipeline
+    (_score_single_internal), so industrial accounts are routed through the
+    autoencoder and each account keeps its full verification context. The finished
+    ScoringResults are aggregated by coordinate.aggregate_results. We deliberately do
+    NOT re-coordinate stripped copies: the previous version dropped the industrial
+    reconstruction error (500 on any industrial item) and discarded solar/audit/tamper
+    context, silently changing every verified probability.
     """
     if not req.items:
         raise HTTPException(status_code=400, detail="Batch items list cannot be empty.")
 
-    scored_items = []
-    for item in req.items:
-        res = _score_single_internal(item)
-        scored_items.append({
-            "consumer_id": res.consumer_id,
-            "consumer_type": res.consumer_type,
-            "residential_probability": res.raw_model_score,
-            "context": CustomerContext(
-                consumer_id=res.consumer_id,
-                feeder_id=res.feeder_id,
-                recent_30d_mean_kwh=item.context.recent_30d_mean_kwh if item.context else 5.0,
-                historical_mean_kwh=item.context.historical_mean_kwh if item.context else 15.0,
-            ),
-        })
-
-    batch_output = coordinate_batch(scored_items, threshold=req.threshold or 0.65)
-    return batch_output
+    results = [_score_single_internal(item, threshold_override=req.threshold) for item in req.items]
+    return aggregate_results(results)
 
 
 @app.get("/api/v1/inspections/queue", tags=["Operations"])
@@ -388,15 +428,17 @@ def get_inspection_queue(
     feeder_id: Optional[str] = None,
     risk_tier: Optional[str] = None,
     status_filter: Optional[str] = None,
+    db: Session = Depends(get_db),
 ):
     """Retrieve prioritized field inspection queue with optional filters."""
-    tickets = list(INSPECTION_TICKETS.values())
+    query = db.query(Inspection)
     if feeder_id:
-        tickets = [t for t in tickets if t["feeder_id"] == feeder_id]
+        query = query.filter(Inspection.feeder_id == feeder_id)
     if risk_tier:
-        tickets = [t for t in tickets if t["risk_tier"] == risk_tier]
+        query = query.filter(Inspection.risk_tier == risk_tier)
     if status_filter:
-        tickets = [t for t in tickets if t["status"] == status_filter]
+        query = query.filter(Inspection.status == status_filter)
+    tickets = [t.to_dict() for t in query.all()]
 
     # Sort critical first, then highest probability
     tickets.sort(key=lambda t: (t["risk_tier"] == "CRITICAL", t["theft_probability"]), reverse=True)
@@ -404,51 +446,90 @@ def get_inspection_queue(
 
 
 @app.post("/api/v1/inspections/{ticket_id}/action", tags=["Operations"])
-def record_inspection_action(ticket_id: str, action: InspectionActionRequest):
+def record_inspection_action(ticket_id: str, action: InspectionActionRequest, db: Session = Depends(get_db)):
     """
     Log field inspection audit outcomes. Feeds the continuous learning / ground truth loop.
+    Persisted to the database so the ground-truth history survives API restarts.
     """
-    cid = action.consumer_id or (INSPECTION_TICKETS.get(ticket_id, {}).get("consumer_id", "UNKNOWN"))
-    if ticket_id not in INSPECTION_TICKETS:
-        # Create ad-hoc if not already in system
-        INSPECTION_TICKETS[ticket_id] = {
-            "ticket_id": ticket_id,
-            "consumer_id": cid,
-            "feeder_id": "FEEDER-MANUAL",
-            "theft_probability": 0.85,
-            "risk_tier": "HIGH",
-            "status": "COMPLETED",
-        }
+    rec = db.query(Inspection).filter(Inspection.ticket_id == ticket_id).first()
+    if rec is None:
+        # Create an ad-hoc ticket if it is not already in the system.
+        rec = Inspection(
+            ticket_id=ticket_id,
+            consumer_id=action.consumer_id or "UNKNOWN",
+            feeder_id="FEEDER-MANUAL",
+            theft_probability=0.85,
+            risk_tier="HIGH",
+        )
+        db.add(rec)
+    elif action.consumer_id:
+        rec.consumer_id = action.consumer_id
 
-    ticket = INSPECTION_TICKETS[ticket_id]
-    ticket["status"] = "COMPLETED"
-    ticket["action_outcome"] = action.action_outcome
-    ticket["actual_theft_found"] = action.actual_theft_found
-    ticket["penalty_imposed"] = action.penalty_imposed_currency
-    ticket["inspector_id"] = action.inspector_id
-    ticket["resolved_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    rec.status = "COMPLETED"
+    rec.action_outcome = action.action_outcome
+    rec.actual_theft_found = action.actual_theft_found
+    rec.penalty_imposed = action.penalty_imposed_currency
+    rec.inspector_id = action.inspector_id
+    rec.notes = action.notes
+    rec.resolved_at = utcnow()
 
-    feedback_record = {
-        "ticket_id": ticket_id,
-        "consumer_id": cid,
-        "outcome": action.action_outcome,
-        "actual_theft": action.actual_theft_found,
-        "penalty": action.penalty_imposed_currency,
-        "notes": action.notes,
-        "timestamp": time.time(),
-    }
-    INSPECTION_FEEDBACK.append(feedback_record)
+    db.add(InspectionFeedback(
+        ticket_id=ticket_id,
+        consumer_id=rec.consumer_id,
+        outcome=action.action_outcome,
+        actual_theft=action.actual_theft_found,
+        penalty=action.penalty_imposed_currency,
+        notes=action.notes,
+    ))
+    db.commit()
+    db.refresh(rec)
 
-    return {"message": "Inspection action logged successfully.", "ticket": ticket}
+    return {"message": "Inspection action logged successfully.", "ticket": rec.to_dict()}
 
 
 @app.get("/api/v1/feeders/summary", tags=["Analytics"])
 def get_feeders_summary():
-    """Returns grid feeder overview metrics and theft loss statistics."""
+    """Grid feeder overview metrics.
+
+    HONESTY: these feeder figures are SIMULATED demo data (no live Pakistani feeder
+    telemetry is wired in yet). The `simulated` flag lets the dashboard label them
+    correctly instead of presenting them as measured field data."""
     feeders = {
         "FEEDER-NORTH-01": {"total_meters": 1240, "suspects": 84, "loss_pct": 28.4, "estimated_monthly_loss_pkr": 1420000},
         "FEEDER-IND-04": {"total_meters": 310, "suspects": 19, "loss_pct": 21.0, "estimated_monthly_loss_pkr": 3890000},
         "FEEDER-SOUTH-02": {"total_meters": 2150, "suspects": 42, "loss_pct": 7.8, "estimated_monthly_loss_pkr": 450000},
         "FEEDER-EAST-07": {"total_meters": 980, "suspects": 65, "loss_pct": 24.5, "estimated_monthly_loss_pkr": 980000},
     }
-    return {"feeders": feeders}
+    return {
+        "simulated": True,
+        "note": "Illustrative feeder cohort - not measured field data.",
+        "feeders": feeders,
+    }
+
+
+BENCHMARK_RESULTS_PATH = os.environ.get(
+    "BENCHMARK_RESULTS_PATH", "experiments_results/benchmark_results.json"
+)
+
+
+@app.get("/api/v1/benchmark/results", tags=["Analytics"])
+def get_benchmark_results():
+    """Serve the REAL staged-benchmark metrics written by
+    src.experiments.run_all_benchmark, so the dashboard shows measured numbers
+    instead of hard-coded ones. Returns an explicit pending payload when the
+    benchmark has not been run yet."""
+    import json as _json
+    if not os.path.exists(BENCHMARK_RESULTS_PATH):
+        return {
+            "available": False,
+            "path": BENCHMARK_RESULTS_PATH,
+            "note": ("Benchmark not run yet. Execute: python -m src.experiments.run_all_benchmark "
+                     "--config config/config.yaml"),
+            "stages": {},
+        }
+    with open(BENCHMARK_RESULTS_PATH, "r") as f:
+        try:
+            data = _json.load(f)
+        except _json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="benchmark_results.json is malformed.")
+    return {"available": True, "path": BENCHMARK_RESULTS_PATH, "stages": data}

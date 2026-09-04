@@ -10,3 +10,7 @@ __pycache__/
 
 # Pytest cache
 .pytest_cache/
+
+# Local SQLite database (field-inspection persistence; PostgreSQL used in prod)
+*.db
+*.sqlite3

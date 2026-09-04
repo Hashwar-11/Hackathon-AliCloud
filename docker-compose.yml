@@ -1,6 +1,22 @@
 version: "3.9"
 
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=etd
+      - POSTGRES_PASSWORD=etd_pass
+      - POSTGRES_DB=etd
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etd -d etd"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   trainer:
     build: .
     volumes:
@@ -18,8 +34,18 @@ services:
       - ./data:/app/data
       - ./models:/app/models
       - ./config:/app/config
+      - ./experiments_results:/app/experiments_results
     environment:
       - CONFIG_PATH=config/config.yaml
+      - BENCHMARK_RESULTS_PATH=experiments_results/benchmark_results.json
+      # Durable store for inspection tickets/feedback. Change ONLY this value to
+      # move between SQLite (local dev) and PostgreSQL (here) -- no code changes.
+      - DATABASE_URL=postgresql://etd:etd_pass@db:5432/etd
+    depends_on:
+      db:
+        condition: service_healthy
+    # Tables auto-create at startup via init_db(). For versioned prod migrations,
+    # run once instead:  docker compose exec api alembic upgrade head
     command: uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 
   dashboard:
@@ -28,4 +54,15 @@ services:
       - "8501:8501"
     depends_on:
       - api
+    volumes:
+      - ./experiments_results:/app/experiments_results
+    environment:
+      # Reach the API by its compose service name, NOT localhost.
+      - ETD_API_URL=http://api:8000
+      - BENCHMARK_RESULTS_PATH=experiments_results/benchmark_results.json
     command: streamlit run dashboard/app.py --server.address 0.0.0.0
+
+# Named volume so PostgreSQL data (inspection tickets/feedback) persists across
+# container restarts and redeploys.
+volumes:
+  pgdata:

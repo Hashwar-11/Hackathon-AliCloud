@@ -165,11 +165,19 @@ def normalize_labels(out: pd.DataFrame) -> pd.DataFrame:
         return out
 
     out["FLAG"] = pd.to_numeric(flag, errors="coerce")
-    # -1 (or any negative) is a common 'normal' sentinel -> 0
-    if (out["FLAG"] < 0).any():
-        n_neg = int((out["FLAG"] < 0).sum())
-        out.loc[out["FLAG"] < 0, "FLAG"] = 0
-        print(f"[prepare-pk] Remapped {n_neg} negative FLAG values (-1 sentinel) -> 0 (normal).")
+    # CONFIRMED convention for this Pakistani export (data owner, 2026-09): FLAG = -1 is
+    # the THEFT sentinel, NOT a 'normal' marker. finetune_pakistan.py documents the same
+    # convention ("FLAG = -1 means THEFT"). Map -1 -> 1 so the on-disk CSV obeys the
+    # project-wide 0=normal / 1=theft convention.
+    if (out["FLAG"] == -1).any():
+        n_theft = int((out["FLAG"] == -1).sum())
+        out.loc[out["FLAG"] == -1, "FLAG"] = 1
+        print(f"[prepare-pk] Remapped {n_theft} FLAG=-1 (confirmed THEFT sentinel) -> 1 (theft).")
+    if (out["FLAG"] < 0).any():  # any other unexpected negative sentinel
+        n_other = int((out["FLAG"] < 0).sum())
+        out.loc[out["FLAG"] < 0, "FLAG"] = 1
+        print(f"[prepare-pk] WARNING: {n_other} unexpected negative FLAG values (not -1) "
+              "-> treated as theft (1); inspect the source export.")
     out["FLAG"] = (out["FLAG"] >= 1).astype(int)  # any positive -> theft
     return out
 
@@ -212,11 +220,17 @@ def main():
     print(f"\n[prepare-pk] Converted: {len(out)} consumers x {n_days} daily readings")
     print(f"[prepare-pk] Class balance (0=normal, 1=theft): {counts}")
     if 1 not in counts:
-        raise SystemExit("[prepare-pk] NO theft (FLAG=1) rows found in any sheet. "
-                         "Stage 5 needs positives — check where the theft scenarios live.")
-    print("[prepare-pk] WARNING: theft positives in this dataset are SYNTHETIC "
-          "(generated scenarios, not confirmed cases). Any Stage 5 result must be "
-          "labelled 'synthetic theft injection — exploratory'.")
+        print("[prepare-pk] WARNING: NO theft (FLAG=1) rows in any source sheet -- this "
+              "target file contains NORMALS ONLY. Stage 5 cannot be evaluated.")
+    elif 0 not in counts:
+        print("[prepare-pk] NOTE: target holds THEFT ONLY (confirmed cases, no normal rows). "
+              "A discriminative fine-tune is IMPOSSIBLE on one class (ROC-AUC/precision "
+              "undefined; BCE pos_weight=0). Stage 5 therefore runs a ZERO-SHOT transfer "
+              "evaluation -- the FROZEN SGCC-trained model scores these confirmed theft "
+              "cases and we report detection recall. Run: "
+              "python -m src.experiments.stage5_zeroshot_pakistan --config config/config.yaml")
+    else:
+        print("[prepare-pk] Both classes present -> full fine-tune / transfer is possible.")
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     out.to_csv(args.out, index=False)

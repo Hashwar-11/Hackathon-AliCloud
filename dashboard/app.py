@@ -6,6 +6,7 @@ Run with:
     streamlit run dashboard/app.py
 """
 import json
+import os
 import time
 import numpy as np
 import pandas as pd
@@ -33,7 +34,37 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-API_BASE_URL = "http://localhost:8000"
+# Backend URL is configurable so the dashboard works under docker-compose
+# (set ETD_API_URL=http://api:8000) and in the cloud -- not just localhost.
+API_BASE_URL = os.environ.get("ETD_API_URL", "http://localhost:8000")
+BENCHMARK_RESULTS_FILE = os.environ.get(
+    "BENCHMARK_RESULTS_PATH", "experiments_results/benchmark_results.json"
+)
+
+
+def load_benchmark_results() -> dict:
+    """Return the REAL benchmark metrics dict.
+
+    Prefers the live API endpoint (/api/v1/benchmark/results); falls back to the
+    results JSON on disk. Returns {} when neither is reachable, so the UI shows an
+    honest 'not run yet' state instead of fabricated numbers.
+    """
+    try:
+        r = requests.get(f"{api_url_input}/api/v1/benchmark/results", timeout=3)
+        if r.status_code == 200:
+            payload = r.json()
+            if payload.get("available"):
+                return payload.get("stages", {}) or {}
+    except Exception:
+        pass
+    try:
+        if os.path.exists(BENCHMARK_RESULTS_FILE):
+            with open(BENCHMARK_RESULTS_FILE, "r") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
 
 # ---------------------------------------------------------------------------
 # Sidebar & Connection Status
@@ -65,6 +96,10 @@ st.sidebar.info(
     "**Active Feeders:** 18 Feeders\n\n"
     "**Monitored Meters:** 42,372\n\n"
     "**Detection Threshold:** 0.65"
+)
+st.sidebar.caption(
+    "Region/feeder framing is an illustrative pilot concept. Meter count (42,372) "
+    "and threshold (0.65) are real (SGCC source + config)."
 )
 
 # ---------------------------------------------------------------------------
@@ -98,6 +133,45 @@ def generate_sample_curve(profile_type: str, seq_len: int = 120) -> list[float]:
     return [round(float(v), 2) for v in base]
 
 
+@st.cache_data
+def load_real_series(kind: str):
+    """Return (series, consumer_type, note) for a REAL measured row from disk.
+
+    No synthetic data here -- these are genuine readings:
+      pakistan_theft : a confirmed Pakistani theft case (raw kWh, 365 d) from
+                       data/raw/pakistan/pakistan_target.csv (FLAG=1, owner-confirmed).
+      sgcc_theft     : a real SGCC validation theft row (preprocessed, 1034 d).
+      sgcc_normal    : a real SGCC validation normal row (preprocessed, 1034 d).
+    """
+    if kind == "pakistan_theft":
+        df = pd.read_csv("data/raw/pakistan/pakistan_target.csv")
+        day_cols = [c for c in df.columns if c not in ("CONS_NO", "FLAG")]
+        cons = df[day_cols].astype(float)
+        # PK003: a confirmed theft case verified as a TRUE POSITIVE (prob 0.996) by the
+        # frozen SGCC Stage 3 detector under the production front-pad transform. Fallback:
+        # the cleanest (least-missing) row if the CONS_NO is ever renamed.
+        hits = df.index[df["CONS_NO"] == "PK003"]
+        idx = int(hits[0]) if len(hits) else int(cons.isna().mean(axis=1).idxmin())
+        series = [round(float(v), 2) for v in cons.loc[idx].fillna(0.0)]
+        return series, "residential", (
+            f"Pakistan CONFIRMED theft {df.loc[idx, 'CONS_NO']} "
+            f"({len(series)} d, raw kWh)")
+    X = np.load("data/processed/X_val.npy")
+    y = np.load("data/processed/y_val.npy")
+    ct = np.load("data/processed/type_val.npy")
+    if kind == "sgcc_theft":
+        # Row 2712: a real SGCC validation theft verified as a TRUE POSITIVE (prob 1.000)
+        # by the frozen Stage 3 detector. Fallback: first residential theft row.
+        idx = 2712 if (y[2712] == 1 and ct[2712] == "residential") \
+            else int(np.argmax((y == 1) & (ct == "residential")))
+        label = "THEFT"
+    else:
+        idx = int(np.argmax((y == 0) & (ct == "residential")))
+        label = "NORMAL"
+    series = [round(float(v), 4) for v in X[idx]]
+    return series, "residential", f"SGCC validation {label} row #{idx} ({len(series)} d, preprocessed)"
+
+
 # ---------------------------------------------------------------------------
 # Main Tabs
 # ---------------------------------------------------------------------------
@@ -117,6 +191,12 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # ===========================================================================
 with tab1:
     st.subheader("⚡ Grid Non-Technical Loss (NTL) Executive Overview")
+    st.caption(
+        "⚠️ **Simulated demo data.** Feeder names, loss %, revenue-at-risk, suspect "
+        "counts and hit-rates below are illustrative placeholders for the pilot UI — "
+        "not measured field values. The 42,372 meter count reflects the real SGCC "
+        "source dataset (the model's training/eval data)."
+    )
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -165,6 +245,9 @@ with tab2:
             "4. Recently Audited & Cleared Meter (False Positive Suppression)",
             "5. Hardware Tamper & Broken Meter Seal (Critical Alert)",
             "6. Legitimate Normal Household",
+            "7. REAL — Pakistan Confirmed Theft (365 d, measured)",
+            "8. REAL — SGCC Validation Theft (1034 d, measured)",
+            "9. REAL — SGCC Validation Normal (1034 d, measured)",
         ]
     )
 
@@ -178,6 +261,7 @@ with tab2:
     default_tamper = 0
     default_seal = False
     default_topology = False
+    real_kind = None
 
     if "1. Residential" in preset:
         default_curve = "residential_theft"
@@ -203,6 +287,12 @@ with tab2:
     elif "6. Legitimate" in preset:
         default_curve = "normal_household"
         default_feeder_loss = 6.0
+    elif preset.startswith("7."):
+        real_kind = "pakistan_theft"
+    elif preset.startswith("8."):
+        real_kind = "sgcc_theft"
+    elif preset.startswith("9."):
+        real_kind = "sgcc_normal"
 
     col_telemetry, col_rules = st.columns([3, 2])
 
@@ -211,8 +301,12 @@ with tab2:
         cons_id = st.text_input("Consumer ID / Meter Number", value="PK-IESCO-983412-A")
         client_type_choice = st.radio("Consumer Type", ["residential", "industrial"], index=0 if default_client_type == "residential" else 1, horizontal=True)
         
-        sample_vals = generate_sample_curve(default_curve, seq_len=90)
-        daily_kwh_str = st.text_area("Daily kWh Readings (Past 90 Days)", value=", ".join(map(str, sample_vals)), height=100)
+        if real_kind:
+            sample_vals, _real_type, real_note = load_real_series(real_kind)
+            st.caption(f" REAL measured data loaded: {real_note}")
+        else:
+            sample_vals = generate_sample_curve(default_curve, seq_len=90)
+        daily_kwh_str = st.text_area("Daily kWh Readings (any length — adapted to the model window)", value=", ".join(map(str, sample_vals)), height=100)
         
         # Plot Consumption Curve
         try:
@@ -478,6 +572,11 @@ with tab4:
 
     with col_metrics:
         st.markdown("#### 📊 Field Audit Performance Tracking")
+        st.caption(
+            "⚠️ **Simulated** — no real field inspections have been logged yet. These "
+            "figures illustrate the feedback-loop UI and will be replaced by live counts "
+            "once inspectors submit outcomes through the form / API."
+        )
         st.markdown("""
         <div class="metric-card">
             <h4>Live Ground-Truth Metrics</h4>
@@ -490,7 +589,7 @@ with tab4:
         """, unsafe_allow_html=True)
         
         st.markdown("---")
-        st.markdown("##### 🎯 Verification Agent Suppression Efficacy")
+        st.markdown("##### 🎯 Verification Agent Suppression Efficacy (illustrative design targets)")
         st.write("- Solar Net-Metering FP Suppressions: **94.2%**")
         st.write("- Post-Audit Clearance Suppressions: **98.1%**")
         st.write("- High-Loss Feeder Prioritization Accuracy: **89.0%**")
@@ -504,20 +603,143 @@ with tab5:
     st.caption("Transparent reporting: strict comparison across all 5 benchmark stages with documented caveats.")
 
     st.markdown("### 🏆 5-Stage Pipeline Comparative Benchmark")
-    benchmark_data = pd.DataFrame([
-        {"Stage": "Stage 1: XGBoost Baseline", "Architecture": "20 Tabular Handcrafted Features", "ROC-AUC": 0.6834, "F1-Score": 0.2706, "Precision": "21.8%", "Recall": "35.8%", "Status": "✅ Measured"},
-        {"Stage": "Stage 2: Raw DL Backbone", "Architecture": "1D-CNN + BiLSTM (Raw Series)", "ROC-AUC": 0.7640, "F1-Score": 0.3820, "Precision": "31.4%", "Recall": "49.0%", "Status": "✅ Measured"},
-        {"Stage": "Stage 3: Channel-Boosted DL", "Architecture": "4-Channel (Raw+AE+Pretext+FFT)", "ROC-AUC": 0.8120, "F1-Score": 0.4450, "Precision": "39.2%", "Recall": "51.6%", "Status": "✅ Measured (+4.8% AUC)"},
-        {"Stage": "Stage 4: Multi-Agent System", "Architecture": "Channel-Boosted + Coordinator + Verify", "ROC-AUC": 0.8750, "F1-Score": 0.5820, "Precision": "64.5%", "Recall": "53.1%", "Status": "✅ Measured (+25.3% Prec)"},
-        {"Stage": "Stage 5: Pakistani Transfer", "Architecture": "Frozen SGCC Backbone + Target Head", "ROC-AUC": 0.7410, "F1-Score": 0.4100, "Precision": "42.0%", "Recall": "40.1%", "Status": "⚠️ Exploratory (Synthetic)"},
-    ])
-    st.dataframe(benchmark_data, use_container_width=True, hide_index=True)
+    st.caption(
+        "Numbers are read LIVE from `experiments_results/benchmark_results.json` "
+        "(or the API `/api/v1/benchmark/results`). Stages 2–3 were trained on a Kaggle "
+        "GPU and their metrics recovered here by CPU re-inference; Stages 4–5 are shown "
+        "honestly (regenerable / data-blocked) — never fabricated."
+    )
+
+    bench = load_benchmark_results()
+
+    def _m(val, pct=False):
+        if val is None:
+            return "—"
+        return f"{val * 100:.1f}%" if pct else f"{val:.4f}"
+
+    def _row(stage, arch, val, test, status):
+        val, test = val or {}, test or {}
+        return {
+            "Stage": stage, "Architecture": arch,
+            "Val ROC-AUC": _m(val.get("roc_auc")),
+            "Test ROC-AUC": _m(test.get("roc_auc")),
+            "Val F1": _m(val.get("f1")),
+            "Val Precision": _m(val.get("precision"), pct=True),
+            "Val Recall": _m(val.get("recall"), pct=True),
+            "Status": status,
+        }
+
+    def _blank(stage, arch, status):
+        return {"Stage": stage, "Architecture": arch, "Val ROC-AUC": "—",
+                "Test ROC-AUC": "—", "Val F1": "—", "Val Precision": "—",
+                "Val Recall": "—", "Status": status}
+
+    bench_rows = []
+
+    # Stage 1 — XGBoost baseline (measured on this host)
+    s1 = bench.get("stage1_xgboost", {})
+    if s1.get("val_metrics"):
+        bench_rows.append(_row("Stage 1: XGBoost Baseline",
+                               f"{s1.get('n_features', 20)} tabular handcrafted features",
+                               s1.get("val_metrics"), s1.get("test_metrics"),
+                               "✅ Measured (real)"))
+    else:
+        bench_rows.append(_blank("Stage 1: XGBoost Baseline",
+                                 "20 tabular handcrafted features",
+                                 "⏳ Not loaded — run stage1_xgboost"))
+
+    # Stage 2 — raw CNN+BiLSTM (Kaggle-trained weights, recovered by CPU re-inference)
+    s2 = bench.get("stage2_raw", {}).get("residential", {})
+    if s2.get("val_metrics"):
+        bench_rows.append(_row("Stage 2: Raw DL Backbone",
+                               "1D-CNN + BiLSTM (raw series, 1 channel)",
+                               s2.get("val_metrics"), s2.get("test_metrics"),
+                               "✅ Recovered (Kaggle weights · CPU re-inference)"))
+    else:
+        bench_rows.append(_blank("Stage 2: Raw DL Backbone",
+                                 "1D-CNN + BiLSTM (raw series, 1 channel)",
+                                 "⏳ Not loaded — run recover_stage_metrics"))
+
+    # Stage 3 — Channel-Boosted (Kaggle-trained weights, recovered by CPU re-inference)
+    s3 = bench.get("stage3_boosted", {}).get("residential", {})
+    if s3.get("val_metrics"):
+        bench_rows.append(_row("Stage 3: Channel-Boosted DL",
+                               "4-channel (raw + AE-residual + masked-pretext + FFT)",
+                               s3.get("val_metrics"), s3.get("test_metrics"),
+                               "✅ Recovered (Kaggle weights · CPU re-inference)"))
+    else:
+        bench_rows.append(_blank("Stage 3: Channel-Boosted DL",
+                                 "4-channel (raw + AE-residual + masked-pretext + FFT)",
+                                 "⏳ Not loaded — run recover_stage_metrics"))
+
+    # Stage 4 — integration/reporting stage (regenerable, not a trained model)
+    bench_rows.append(_blank("Stage 4: Multi-Agent Integration",
+                             "Stage 3 + Coordinator + Verification",
+                             "🔁 Reporting stage — regenerate via stage4_report"))
+
+    # Stage 5 — Pakistan zero-shot transfer (single-class target: 42 confirmed theft, 0 normal)
+    s5 = bench.get("stage5_transfer", {})
+    if s5.get("method") == "zero_shot_transfer" and s5.get("detection_recall"):
+        rec = s5["detection_recall"].get("at_production_threshold_0.65")
+        fc = s5.get("flagged_counts", {})
+        bench_rows.append({
+            "Stage": "Stage 5: Pakistani Zero-Shot Transfer",
+            "Architecture": "Frozen SGCC Stage 3 (no Pakistani training)",
+            "Val ROC-AUC": "n/a (1 class)",
+            "Test ROC-AUC": "n/a (1 class)",
+            "Val F1": "n/a",
+            "Val Precision": "n/a (0 normals)",
+            "Val Recall": _m(rec, pct=True),
+            "Status": (f"✅ Zero-shot — {fc.get('at_0.65', '?')}/{fc.get('of_total', '?')} "
+                       f"confirmed theft flagged @0.65"),
+        })
+    else:
+        bench_rows.append(_blank("Stage 5: Pakistani Transfer",
+                                 "Frozen SGCC trunk + fresh target head",
+                                 "⏸ PENDING — run stage5_zeroshot_pakistan"))
+
+    st.dataframe(pd.DataFrame(bench_rows), use_container_width=True, hide_index=True)
+
+    cmp23 = bench.get("stage3_boosted", {}).get("comparison_vs_stage2", {})
+    if cmp23.get("delta_roc_auc") is not None:
+        st.success(
+            f"**Channel Boosting works:** Stage 3 lifted validation ROC-AUC by "
+            f"**{cmp23['delta_roc_auc']:+.4f}** over Stage 2 "
+            f"({cmp23.get('stage2_residential_val', {}).get('roc_auc', '—')} → "
+            f"{cmp23.get('stage3_residential_val', {}).get('roc_auc', '—')}) — a real, "
+            f"measured gain from the 4-channel stack."
+        )
+
+    if s5.get("method") == "zero_shot_transfer" and s5.get("detection_recall"):
+        _rec = s5["detection_recall"].get("at_production_threshold_0.65")
+        _fc = s5.get("flagged_counts", {})
+        _med = s5.get("theft_score_distribution", {}).get("median", "—")
+        st.success(
+            f"**Zero-shot transfer works (China → Pakistan):** with **no** Pakistani training, "
+            f"the frozen SGCC Stage 3 model flags **{_fc.get('at_0.65', '?')}/{_fc.get('of_total', '?')} "
+            f"({_rec * 100:.1f}%)** of the confirmed Pakistani theft cases at the production "
+            f"threshold 0.65 (median theft score {_med}). Single-class target → recall only "
+            f"(precision/AUC undefined without Pakistani normals)."
+        )
+
+    st.info(
+        "**How these numbers were produced:** Stages 2–3 are deep networks *trained on a "
+        "Kaggle/Colab T4 GPU*; their weights live in `models/checkpoints/`. The metrics above "
+        "were **recovered on this CPU host by inference-only re-evaluation** "
+        "(`python -m src.experiments.recover_stage_metrics`) on the frozen val/test splits — "
+        "no retraining, nothing fabricated. Stage 2's val ROC-AUC reproduces the Kaggle-saved "
+        "`stage2_val_probs.npz` exactly (0.6835 MATCH). Stage 4 is a reporting stage. Stage 5 "
+        "is a **zero-shot** transfer measurement (`stage5_zeroshot_pakistan`) — the Pakistani "
+        "target is single-class (42 confirmed theft, 0 normal), so a fine-tune is impossible "
+        "and detection **recall** is reported instead of AUC."
+    )
 
     st.markdown("---")
     st.markdown("### 📜 System Honesty & Scientific Governance Checklist")
     st.markdown("""
     - ✅ **No Data Leakage:** Val and Test splits are strictly imbalanced (8.53% natural theft rate) — SMOTE was applied **only** to the training split.
-    - ✅ **Magnitude Heuristic Disclosure:** SGCC has no consumer-type label; the 500 kWh/day threshold is an engineering proxy.
+    - ✅ **Source Dataset:** All model evidence comes from the public **SGCC** dataset (42,372 rows / 3,615 theft = 8.53%), recovered from the spanned archive and regenerated locally.
+    - ⚠️ **Magnitude Heuristic Disclosure:** SGCC has no consumer-type label; the ≥500 kWh/day "industrial" proxy covers only ~37 accounts — **statistically unreliable / exploratory**, not a validated industrial model.
     - ✅ **Logistic Calibration vs Ratio:** Industrial reconstruction error is calibrated via a logistic sigmoid centered at $\\tau$ rather than a naive linear ratio.
-    - ✅ **Pakistani Data Disclosure:** Stage 5 target dataset contains synthetic theft injection from `pakistan_sgcc_format.xlsx`; reported honestly as exploratory transfer.
+    - ✅ **Pakistani Zero-Shot Transfer MEASURED (labels resolved):** The data owner confirmed `FLAG = -1` = **theft**, so `prepare_pakistan_target.py` now maps `-1 → 1` (42 confirmed theft rows; `finetune_pakistan.py` made consistent and guarded to **abort** on single-class input). Because the target is **single-class (42 theft / 0 normal)**, a fine-tune is mathematically impossible — Stage 5 reports an honest **zero-shot** result instead: the frozen SGCC Stage 3 model flags **27/42 (64.3%)** of confirmed Pakistani theft at threshold 0.65 (**recall only**; precision/AUC undefined without normals), front-padded to match the deployed transform. A **fine-tuned** Stage 5 stays pending until ≥50 confirmed DISCO/FIR/inspection cases **plus matching normals** are collected (100+ preferred).
     """)
