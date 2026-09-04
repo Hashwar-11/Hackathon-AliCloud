@@ -145,6 +145,17 @@
       "delta_f1": 0.0704
     }
   },
+  "stage4_integration": {
+    "status": "REGENERABLE",
+    "note": "Stage 4 is a reporting stage (Coordinator + Verification over Stage 3 scores), not a separately trained model. Re-run `python -m src.experiments.stage4_report --config config/config.yaml` on a GPU host to regenerate the unified-score table.",
+    "scoring_convention": {
+      "residential": "sigmoid probability from the Stage 3 classifier",
+      "industrial": "logistic sigmoid calibration centred at tau (steepness=4.0) — replaces the naive min(err/tau, 1.0) ratio"
+    },
+    "industrial_reliability": "EXPLORATORY — consumer-type proxy at 50 kWh/day selects ~649 accounts (previously 37 at 500 kWh/day); still a magnitude heuristic, not ground truth",
+    "verification_layer": "8 rule-based FP-suppression rules + window-agnostic financial loss estimator",
+    "checkpoint_fix": "stage4_report.py now loads residential_model_best.pt (the actual Stage 3 model) instead of residential_stage3.pt (overwritten by finetune_pakistan.py)"
+  },
   "stage5_transfer": {
     "status": "ZERO-SHOT EVALUATED",
     "method": "zero_shot_transfer",

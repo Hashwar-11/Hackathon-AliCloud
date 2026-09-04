@@ -19,10 +19,11 @@ preprocessing:
 
 consumer_type_proxy:
   method: "consumption_magnitude"   # heuristic — no real label exists in SGCC
-  daily_kwh_industrial_threshold: 500   # customers averaging above this are routed to Industrial Agent.
-                                        # NOTE: at 500 only ~37 accounts qualify (~12 normal), so the
-                                        # industrial detector's results are statistically unreliable.
-                                        # Kept at 500 deliberately for the honest staged benchmark.
+  daily_kwh_industrial_threshold: 50    # customers averaging above this are routed to Industrial Agent.
+                                        # At 500 only ~37 accounts qualified (~12 normal) — statistically
+                                        # useless. Lowered to 50 (~649 accounts, ~13x the old pool) so the
+                                        # industrial detector has enough normal rows to derive a meaningful tau.
+                                        # Still a heuristic — SGCC has no real consumer-type column.
 
 channels:
   use_raw: true

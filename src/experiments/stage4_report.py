@@ -82,8 +82,8 @@ def main():
     # ---- Industrial sample-size report (requirement of Stage 4) ----
     counts = {"val": count_by_type(ct_va, y_va, "val"),
               "test": count_by_type(ct_te, y_te, "test")}
-    tau_path = os.path.join(STAGE_CKPT_DIR, "industrial_tau_stage3.txt")
-    ind_ckpt = os.path.join(STAGE_CKPT_DIR, "industrial_stage3.pt")
+    tau_path = os.path.join(prod_ckpt, "industrial_tau_stage3.txt")
+    ind_ckpt = os.path.join(prod_ckpt, "industrial_stage3.pt")
     industrial_available = os.path.exists(ind_ckpt) and os.path.exists(tau_path)
 
     # Normal industrial TRAIN rows, as recorded by Stage 3's own results.
@@ -107,6 +107,12 @@ def main():
         ae, pretext, freq = load_channels(seq_len, prod_ckpt)
 
         # Residential head
+        # Residential head — use residential_model_best.pt (the actual Stage 3 model;
+        # residential_stage3.pt was overwritten by finetune_pakistan.py)
+        res_ckpt_name = "residential_model_best.pt"
+        res_ckpt_path = os.path.join(prod_ckpt, res_ckpt_name)
+        if not os.path.exists(res_ckpt_path):
+            res_ckpt_path = os.path.join(prod_ckpt, "residential_stage3.pt")
         mcfg = cfg["residential_model"]
         res_model = ResidentialModel(num_channels=4, seq_len=seq_len,
                                      cnn_filters=mcfg["cnn_filters"],
@@ -114,7 +120,7 @@ def main():
                                      lstm_hidden_units=mcfg["lstm_hidden_units"],
                                      dropout=mcfg["dropout"]).to(DEVICE)
         res_model.load_state_dict(torch.load(
-            os.path.join(STAGE_CKPT_DIR, "residential_stage3.pt"),
+            res_ckpt_path,
             map_location=DEVICE, weights_only=True))
         res_model.eval()
 

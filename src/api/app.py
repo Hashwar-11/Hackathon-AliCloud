@@ -195,8 +195,8 @@ class CustomerContextSchema(BaseModel):
     feeder_id: str = "FEEDER-MAIN"
     transformer_id: str = "TX-01"
     tariff_category: str = "residential"
-    sanctioned_load_kw: float = 5.0
-    feeder_loss_pct: float = 12.0
+    sanctioned_load_kw: float = 7.0            # typical Pakistani residential sanctioned load
+    feeder_loss_pct: float = 18.0              # Pakistani DISCO avg loss 15-25%
     recent_audit_result: str = "none"       # "cleared", "confirmed_theft", "meter_fault", "none"
     months_since_last_audit: int = 999
     billing_dispute_open: bool = False
@@ -209,7 +209,8 @@ class CustomerContextSchema(BaseModel):
     reverse_current_alert: bool = False
     historical_mean_kwh: float = 15.0
     recent_30d_mean_kwh: float = 5.0
-    tariff_rate_per_kwh: float = 35.0
+    lowest_window_mean_kwh: float = 0.0   # 0 = auto-computed from the submitted series
+    tariff_rate_per_kwh: float = 28.0      # PKR/kWh — typical Pakistani residential tariff
 
 
 class PredictRequest(BaseModel):
@@ -269,6 +270,16 @@ def _score_single_internal(req: PredictRequest, threshold_override: Optional[flo
     if "recent_30d_mean_kwh" not in ctx_kwargs or ctx_kwargs["recent_30d_mean_kwh"] == 5.0:
         recent_chunk = req.daily_kwh[-30:] if len(req.daily_kwh) >= 30 else req.daily_kwh
         ctx_kwargs["recent_30d_mean_kwh"] = float(np.nanmean(recent_chunk)) if len(recent_chunk) > 0 else 0.0
+    # Window-agnostic lowest 30-day rolling mean (for the financial-loss estimator)
+    if "lowest_window_mean_kwh" not in ctx_kwargs or ctx_kwargs.get("lowest_window_mean_kwh", 0.0) == 0.0:
+        readings = np.array(req.daily_kwh, dtype=np.float32)
+        if len(readings) >= 30:
+            cumsum = np.cumsum(np.insert(readings, 0, 0.0))
+            window_sums = cumsum[30:] - cumsum[:-30]
+            window_means = window_sums / 30.0
+            ctx_kwargs["lowest_window_mean_kwh"] = float(np.nanmin(window_means))
+        else:
+            ctx_kwargs["lowest_window_mean_kwh"] = float(np.nanmean(readings)) if len(readings) > 0 else 0.0
 
     context = CustomerContext(consumer_id=req.consumer_id, **ctx_kwargs)
     threshold = threshold_override if threshold_override is not None else CFG.get("scoring", {}).get("theft_probability_threshold", 0.65)

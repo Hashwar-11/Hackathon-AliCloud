@@ -1,7 +1,7 @@
 """
 Unit tests for Verification Agent (src/agents/verification/verify.py).
-Tests all 7 utility domain rules, probability adjustments, action recommendations,
-and financial loss impact assessment.
+Tests all 8 utility domain rules, probability adjustments, action recommendations,
+and window-agnostic financial loss impact assessment.
 """
 import pytest
 from src.agents.verification.verify import verify_flag, CustomerContext
