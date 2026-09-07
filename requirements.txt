@@ -7,9 +7,25 @@ scipy>=1.11.0
 xgboost>=2.0.0
 openpyxl>=3.1.0          # reads the Pakistani target dataset (.xlsx) in Stage 5
 pyyaml>=6.0
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.4.0
+# --- Web/API stack: FastAPI and Starlette must move in lockstep ---
+# Starlette 1.6.x is the release FastAPI 0.141.x pins. Mismatched pairs are the
+# classic cause of ASGI/TestClient import errors, so both are pinned exactly.
+fastapi==0.141.1
+starlette==1.6.0
+uvicorn==0.52.4
+pydantic==2.13.5
+# starlette.testclient (imported by tests/test_api.py) loads httpx2 at import time;
+# without it all 7 API tests fail at collection with
+# "The starlette.testclient module requires the httpx2 package to be installed."
+httpx2==2.12.0
 streamlit>=1.28.0
 requests>=2.31.0
+# --- Persistence: SQLAlchemy ORM + drivers + migrations ---
+# Field-inspection tickets & feedback now live in a real database so they survive
+# API restarts (previously in-memory dicts that reset on every boot). SQLite
+# (stdlib) is the zero-config local default; psycopg2-binary enables PostgreSQL
+# for docker-compose / AliCloud ApsaraDB RDS -- selected purely via DATABASE_URL.
+SQLAlchemy>=2.0.30
+psycopg2-binary>=2.9.9
+alembic>=1.13.1
 pytest>=7.4.0

@@ -214,7 +214,7 @@ def main():
         print("[CHECK] WARNING: expected 42,372 rows for the COMPLETE SGCC dataset. "
               "33,841 means you are on the truncated copy — stop and fix the config path.")
     print(f"[CHECK] Theft rate: {df['FLAG'].mean():.4f}  "
-          f"(complete dataset ≈ 0.0853; truncated copy ≈ 0.1068)")
+          f"(complete dataset ~0.0853; truncated copy ~0.1068)")
 
     X, y, ctype = preprocess(df, cfg)
     train, val, test = split_and_balance(X, y, ctype, cfg)

@@ -7,6 +7,17 @@ venv/
 # Python cache files
 __pycache__/
 *.py[cod]
+*.pyc
 
 # Pytest cache
 .pytest_cache/
+
+# Local SQLite database (field-inspection persistence; PostgreSQL used in prod)
+*.db
+*.sqlite3
+
+# Archives and upload folders
+kaggle_upload/
+models.zip
+*.zip
+*.z[0-9][0-9]

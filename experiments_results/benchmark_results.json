@@ -3,34 +3,202 @@
     "backend": "xgboost",
     "n_features": 20,
     "val_metrics": {
-      "roc_auc": 0.6834,
+      "roc_auc": 0.6824,
       "n_samples": 6355,
       "n_positives": 542,
-      "f1": 0.2706,
-      "precision": 0.2175,
-      "recall": 0.3579,
-      "accuracy": 0.8354,
-      "threshold": 0.3
+      "f1": 0.2699,
+      "precision": 0.2036,
+      "recall": 0.4004,
+      "accuracy": 0.8153,
+      "threshold": 0.25
     },
     "val_metrics_thr05": {
-      "roc_auc": 0.6834,
+      "roc_auc": 0.6824,
       "n_samples": 6355,
       "n_positives": 542,
-      "f1": 0.2354,
-      "precision": 0.2404,
-      "recall": 0.2306,
-      "accuracy": 0.8722,
+      "f1": 0.236,
+      "precision": 0.2436,
+      "recall": 0.2288,
+      "accuracy": 0.8736,
       "threshold": 0.5
     },
     "test_metrics": {
-      "roc_auc": 0.6807,
+      "roc_auc": 0.6779,
       "n_samples": 6356,
       "n_positives": 542,
-      "f1": 0.2431,
-      "precision": 0.1949,
-      "recall": 0.3229,
-      "accuracy": 0.8285,
-      "threshold": 0.3
+      "f1": 0.2423,
+      "precision": 0.1822,
+      "recall": 0.3616,
+      "accuracy": 0.8071,
+      "threshold": 0.25
     }
+  },
+  "stage2_raw": {
+    "device": "cpu",
+    "recovered": true,
+    "recovery_note": "Metrics recovered by CPU re-inference (no training) from the Kaggle-returned checkpoints on the frozen val/test splits. Stage 3 uses residential_model_best.pt (stage3_boosted.py writes its final model there); residential_stage3.pt is NOT used (overwritten by finetune_pakistan.py). Industrial detector not recovered (too few industrial-typed rows to be statistically meaningful).",
+    "residential": {
+      "val_metrics": {
+        "roc_auc": 0.6835,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.2456,
+        "precision": 0.157,
+        "recall": 0.5638,
+        "accuracy": 0.705,
+        "threshold": 0.6
+      },
+      "val_metrics_thr05": {
+        "roc_auc": 0.6835,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.203,
+        "precision": 0.1173,
+        "recall": 0.7542,
+        "accuracy": 0.4957,
+        "threshold": 0.5
+      },
+      "test_metrics": {
+        "roc_auc": 0.6603,
+        "n_samples": 6348,
+        "n_positives": 538,
+        "f1": 0.2302,
+        "precision": 0.1465,
+        "recall": 0.5372,
+        "accuracy": 0.6955,
+        "threshold": 0.6
+      },
+      "n_val": 6352,
+      "n_test": 6348,
+      "npz_crosscheck_val_auc": 0.6835
+    },
+    "industrial": {
+      "status": "SKIPPED",
+      "reason": "too few industrial-typed rows (consumer_type_proxy @500 kWh/day)"
+    }
+  },
+  "stage3_boosted": {
+    "device": "cpu",
+    "recovered": true,
+    "recovery_note": "Metrics recovered by CPU re-inference (no training) from the Kaggle-returned checkpoints on the frozen val/test splits. Stage 3 uses residential_model_best.pt (stage3_boosted.py writes its final model there); residential_stage3.pt is NOT used (overwritten by finetune_pakistan.py). Industrial detector not recovered (too few industrial-typed rows to be statistically meaningful).",
+    "residential": {
+      "val_metrics": {
+        "roc_auc": 0.7453,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.316,
+        "precision": 0.2692,
+        "recall": 0.3826,
+        "accuracy": 0.8589,
+        "threshold": 0.7
+      },
+      "val_metrics_thr05": {
+        "roc_auc": 0.7453,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.2978,
+        "precision": 0.2185,
+        "recall": 0.4677,
+        "accuracy": 0.8122,
+        "threshold": 0.5
+      },
+      "test_metrics": {
+        "roc_auc": 0.7529,
+        "n_samples": 6348,
+        "n_positives": 538,
+        "f1": 0.3124,
+        "precision": 0.2684,
+        "recall": 0.3736,
+        "accuracy": 0.8606,
+        "threshold": 0.7
+      },
+      "n_val": 6352,
+      "n_test": 6348
+    },
+    "industrial": {
+      "status": "SKIPPED",
+      "reason": "not recovered \u2014 industrial sample too small to be reliable"
+    },
+    "comparison_vs_stage2": {
+      "note": "Stage 3 (Channel Boosting) vs Stage 2 (raw), same val split",
+      "stage2_residential_val": {
+        "roc_auc": 0.6835,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.2456,
+        "precision": 0.157,
+        "recall": 0.5638,
+        "accuracy": 0.705,
+        "threshold": 0.6
+      },
+      "stage3_residential_val": {
+        "roc_auc": 0.7453,
+        "n_samples": 6352,
+        "n_positives": 541,
+        "f1": 0.316,
+        "precision": 0.2692,
+        "recall": 0.3826,
+        "accuracy": 0.8589,
+        "threshold": 0.7
+      },
+      "delta_roc_auc": 0.0618,
+      "delta_f1": 0.0704
+    }
+  },
+  "stage4_integration": {
+    "status": "REGENERABLE",
+    "note": "Stage 4 is a reporting stage (Coordinator + Verification over Stage 3 scores), not a separately trained model. Re-run `python -m src.experiments.stage4_report --config config/config.yaml` on a GPU host to regenerate the unified-score table.",
+    "scoring_convention": {
+      "residential": "sigmoid probability from the Stage 3 classifier",
+      "industrial": "logistic sigmoid calibration centred at tau (steepness=4.0) \u2014 replaces the naive min(err/tau, 1.0) ratio"
+    },
+    "industrial_reliability": "EXPLORATORY \u2014 consumer-type proxy at 50 kWh/day selects ~649 accounts (previously 37 at 500 kWh/day); still a magnitude heuristic, not ground truth",
+    "verification_layer": "8 rule-based FP-suppression rules + window-agnostic financial loss estimator",
+    "checkpoint_fix": "stage4_report.py now loads residential_model_best.pt (the actual Stage 3 model) instead of residential_stage3.pt (overwritten by finetune_pakistan.py)"
+  },
+  "stage5_transfer": {
+    "status": "ZERO-SHOT EVALUATED",
+    "method": "zero_shot_transfer",
+    "trained_on_pakistan": false,
+    "device": "cpu",
+    "target_csv": "data/raw/pakistan/pakistan_target.csv",
+    "n_target": 42,
+    "target_classes": {
+      "theft": 42,
+      "normal": 0
+    },
+    "consumer_type_proxy": {
+      "residential": 0,
+      "industrial": 42
+    },
+    "frozen_model": "residential_model_best.pt (SGCC Stage 3, 4-channel boosted)",
+    "sequence_length_adaptation": "365 -> 1034 (FRONT-padded zeros = production alignment)",
+    "detection_recall": {
+      "at_production_threshold_0.65": 0.6429,
+      "at_stage3_best_f1_threshold": 0.5714,
+      "stage3_best_f1_threshold_value": 0.7,
+      "at_0.50": 0.7857
+    },
+    "flagged_counts": {
+      "at_0.65": 27,
+      "at_stage3_thr": 24,
+      "at_0.50": 33,
+      "of_total": 42
+    },
+    "theft_score_distribution": {
+      "mean": 0.7052,
+      "median": 0.7283,
+      "min": 0.1207,
+      "max": 0.9991,
+      "std": 0.2713
+    },
+    "why_not_finetuned": "Single class: 42 confirmed theft, 0 Pakistani normals. A discriminative fine-tune is undefined here (ROC-AUC/precision need both classes; BCE pos_weight = n_neg/n_pos = 0). finetune_pakistan.py now ABORTS on single-class input instead of writing a degenerate model over the good SGCC weights.",
+    "limitations": [
+      "No Pakistani normals -> precision, specificity and ROC-AUC are undefined; only recall (detection rate) on confirmed theft is measurable.",
+      "Target series are 365 days FRONT-padded to the SGCC 1034-day window, matching the production transform_daily_series alignment, so this recall reflects the deployed preprocessing; 365d of real history is still shorter than the 1034d the model was trained on.",
+      "All rows are scored by the residential Stage 3 detector (the only validated discriminative model); the industrial autoencoder is anomaly-based and was not recovered, and the >=500 kWh/day proxy marks most of these accounts 'industrial'.",
+      "Zero-shot: the model saw NO Pakistani data. A fine-tune stays PENDING until a both-class Pakistani set exists (>=50 confirmed theft + matching normals)."
+    ],
+    "honesty_note": "Genuine China->Pakistan ZERO-SHOT transfer measurement on 42 user-confirmed theft cases (FLAG = -1 == theft, per the data owner). NOT a fine-tuned result; reported as detection recall, never as AUC."
   }
 }

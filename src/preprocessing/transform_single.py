@@ -12,19 +12,26 @@ import numpy as np
 
 
 def impute_single(values: np.ndarray) -> np.ndarray:
-    """Adjacent temporal linear interpolation for a 1D sequence."""
-    arr = values.copy().astype(float)
+    """Missing-value imputation IDENTICAL to the training/batch pipeline.
+
+    Mirrors ``preprocess.impute_missing_matrix`` exactly: a missing cell becomes
+    the mean of its two ORIGINAL neighbours ONLY when both exist; otherwise it
+    becomes 0.0. Neighbours are always read from the un-imputed input (no forward
+    propagation of already-filled values, and no single-neighbour fallback).
+
+    The previous version fell back to a single available neighbour, which produced
+    different numbers than training for runs of missing days -> train/serve skew.
+    Keeping this byte-for-byte consistent with training is a demo-critical fix.
+    """
+    original = values.copy().astype(float)
+    arr = original.copy()
     n = len(arr)
     for i in range(n):
-        if np.isnan(arr[i]):
-            left = arr[i - 1] if i - 1 >= 0 else np.nan
-            right = arr[i + 1] if i + 1 < n else np.nan
+        if np.isnan(original[i]):
+            left = original[i - 1] if i - 1 >= 0 else np.nan
+            right = original[i + 1] if i + 1 < n else np.nan
             if not np.isnan(left) and not np.isnan(right):
                 arr[i] = (left + right) / 2.0
-            elif not np.isnan(left):
-                arr[i] = left
-            elif not np.isnan(right):
-                arr[i] = right
             else:
                 arr[i] = 0.0
     arr[np.isnan(arr)] = 0.0

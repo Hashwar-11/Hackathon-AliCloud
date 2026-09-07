@@ -13,8 +13,8 @@ class CustomerContext:
     feeder_id: str = "FEEDER-01"
     transformer_id: str = "TX-01"
     tariff_category: str = "residential"       # residential, commercial, industrial, agricultural
-    sanctioned_load_kw: float = 5.0
-    feeder_loss_pct: float = 12.0              # Distribution line loss percentage on this feeder
+    sanctioned_load_kw: float = 7.0            # typical Pakistani residential sanctioned load
+    feeder_loss_pct: float = 18.0              # Pakistani DISCO average technical+commercial loss 15-25%
     recent_audit_result: str = "none"          # "cleared", "confirmed_theft", "meter_fault", "none"
     months_since_last_audit: int = 999
     billing_dispute_open: bool = False
@@ -26,8 +26,10 @@ class CustomerContext:
     meter_seal_broken: bool = False
     reverse_current_alert: bool = False
     historical_mean_kwh: float = 15.0          # Baseline consumption
-    recent_30d_mean_kwh: float = 5.0           # Recent consumption
-    tariff_rate_per_kwh: float = 35.0          # Local currency (PKR/kWh, $/kWh, etc.)
+    recent_30d_mean_kwh: float = 5.0           # Recent consumption (last 30 days)
+    lowest_window_mean_kwh: float = 0.0        # Lowest 30-day rolling mean anywhere in the series
+                                                # (0 = not provided; falls back to recent_30d_mean_kwh)
+    tariff_rate_per_kwh: float = 28.0          # PKR/kWh — typical Pakistani residential tariff rate
 
 
 def verify_flag(context: CustomerContext, raw_theft_probability: float) -> Dict[str, Any]:
@@ -110,13 +112,39 @@ def verify_flag(context: CustomerContext, raw_theft_probability: float) -> Dict[
     if context.billing_dispute_open:
         reasons.append("Open billing dispute on account — flag stands for inspection; notify field team of billing review.")
 
+    # Rule 8: Sustained consumption drop (window-agnostic theft signature)
+    # If the lowest 30-day window anywhere in the series shows a severe drop vs historical
+    # baseline, that is the textbook theft signature (meter bypass / sustained tampering).
+    if context.lowest_window_mean_kwh > 0 and context.historical_mean_kwh > 1.0:
+        drop_ratio = 1.0 - (context.lowest_window_mean_kwh / context.historical_mean_kwh)
+        if drop_ratio >= 0.70 and raw_theft_probability >= 0.40:
+            adjusted_probability = min(1.0, adjusted_probability * 1.20)
+            reason = (f"Sustained severe consumption drop detected "
+                      f"(lowest 30d window is {drop_ratio*100:.0f}% below historical mean) "
+                      f"— textbook theft signature, boosting score.")
+            reasons.append(reason)
+            adjustments.append({"rule": "sustained_severe_drop_boost", "factor": 1.20})
+
     # Bound final probability to [0.0, 1.0]
     final_prob = max(0.0, min(1.0, adjusted_probability))
 
-    # Revenue & Financial Loss Estimation
-    drop_kwh_per_day = max(0.0, context.historical_mean_kwh - context.recent_30d_mean_kwh)
+    # Revenue & Financial Loss Estimation (window-agnostic)
+    # Use the LOWEST 30-day window found anywhere in the series (not just the tail)
+    # so theft that occurred earlier but has since partially recovered is still captured.
+    # Falls back to recent_30d_mean_kwh when the window-agnostic metric is not provided.
+    effective_lowest_kwh = (
+        context.lowest_window_mean_kwh
+        if context.lowest_window_mean_kwh > 0
+        else context.recent_30d_mean_kwh
+    )
+    drop_kwh_per_day = max(0.0, context.historical_mean_kwh - effective_lowest_kwh)
     monthly_stolen_kwh = drop_kwh_per_day * 30.0
     estimated_monthly_loss = monthly_stolen_kwh * context.tariff_rate_per_kwh
+    loss_method = (
+        "window_agnostic_lowest_30d_segment"
+        if context.lowest_window_mean_kwh > 0
+        else "recent_30d_fallback"
+    )
 
     # Determine Action Recommendation
     if final_prob >= 0.85 or context.meter_seal_broken:
@@ -143,6 +171,9 @@ def verify_flag(context: CustomerContext, raw_theft_probability: float) -> Dict[
             "estimated_monthly_stolen_kwh": round(monthly_stolen_kwh, 2),
             "estimated_monthly_loss_currency": round(estimated_monthly_loss, 2),
             "tariff_rate": context.tariff_rate_per_kwh,
+            "historical_mean_kwh": round(context.historical_mean_kwh, 2),
+            "lowest_window_mean_kwh": round(effective_lowest_kwh, 2),
+            "estimation_method": loss_method,
         },
     }
 if __name__ == "__main__":

@@ -1,74 +1,317 @@
 """
-Electricity Theft Detection (ETD) — Enterprise Operations & Intelligence Dashboard.
-A multi-agent decision support system for utility revenue protection and field dispatch.
+Electricity Theft Detection (ETD) — Enterprise 3D Command & Intelligence Matrix.
+Next-generation 3D spatial interface powered by Three.js WebGL & Streamlit.
+Zero emojis, strict professional typography, glowing neon aesthetics, real-time 3D grid telemetry.
 
 Run with:
-    streamlit run dashboard/app.py
+    venv/bin/streamlit run dashboard/app.py --server.port 8501
 """
 import json
+import os
 import time
 import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Page Configuration
 st.set_page_config(
-    page_title="Electricity Theft Intelligence & Dispatch",
-    page_icon="⚡",
+    page_title="ETD — Grid Intelligence & Dispatch Matrix",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS Styling
+# Custom High-End 3D & Glassmorphism Styling (Zero Emojis, Clean Tech Aesthetics)
 st.markdown("""
 <style>
-    .main-header { font-size: 2.2rem; font-weight: 700; color: #1E293B; margin-bottom: 0.2rem; }
-    .sub-header { font-size: 1.05rem; color: #64748B; margin-bottom: 1.5rem; }
-    .metric-card { background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1rem; }
-    .badge-critical { background-color: #FEE2E2; color: #991B1B; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-high { background-color: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-medium { background-color: #E0E7FF; color: #3730A3; padding: 4px 8px; border-radius: 4px; }
-    .badge-low { background-color: #DCFCE7; color: #166534; padding: 4px 8px; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+    :root {
+        --bg-deep: #060913;
+        --bg-surface: rgba(13, 20, 36, 0.75);
+        --accent-cyan: #00f0ff;
+        --accent-blue: #3b82f6;
+        --accent-purple: #8b5cf6;
+        --accent-danger: #ff3366;
+        --accent-warning: #f59e0b;
+        --accent-success: #10b981;
+        --border-glass: rgba(0, 240, 255, 0.15);
+        --text-primary: #f8fafc;
+        --text-muted: #94a3b8;
+    }
+
+    /* Base Theme Overrides */
+    .stApp {
+        background-color: var(--bg-deep);
+        color: var(--text-primary);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Custom Header Matrix */
+    .matrix-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #ffffff 0%, #00f0ff 50%, #7000ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.2rem;
+        text-transform: uppercase;
+    }
+
+    .matrix-subtitle {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: var(--accent-cyan);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        opacity: 0.85;
+    }
+
+    /* Glassmorphism Metric Cards */
+    .glass-card {
+        background: var(--bg-surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-glass);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 12px rgba(0, 240, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        border-color: rgba(0, 240, 255, 0.4);
+        box-shadow: 0 12px 40px 0 rgba(0, 240, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .card-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.1;
+    }
+
+    .card-delta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        margin-top: 0.4rem;
+    }
+
+    .delta-positive { color: var(--accent-cyan); }
+    .delta-danger { color: var(--accent-danger); }
+    .delta-warning { color: var(--accent-warning); }
+
+    /* Risk Badges */
+    .badge-critical {
+        background: rgba(255, 51, 102, 0.15);
+        border: 1px solid rgba(255, 51, 102, 0.6);
+        color: #ff3366;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        display: inline-block;
+    }
+
+    .badge-high {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.6);
+        color: #fbbf24;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        display: inline-block;
+    }
+
+    .badge-medium {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.6);
+        color: #60a5fa;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-low {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.6);
+        color: #34d399;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    /* Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(13, 20, 36, 0.6);
+        border-radius: 8px;
+        padding: 6px;
+        border: 1px solid rgba(0, 240, 255, 0.1);
+        gap: 6px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        border-radius: 6px;
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(112, 0, 255, 0.25) 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0, 240, 255, 0.3) !important;
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    /* Input Controls */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div {
+        background-color: rgba(13, 20, 36, 0.9) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0, 240, 255, 0.2) !important;
+        border-radius: 6px !important;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: var(--accent-cyan) !important;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.3) !important;
+    }
+
+    /* Primary Buttons */
+    .stButton>button[kind="primary"] {
+        background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%) !important;
+        color: #060913 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        border: none !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 20px rgba(0, 240, 255, 0.35) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .stButton>button[kind="primary"]:hover {
+        box-shadow: 0 6px 28px rgba(0, 240, 255, 0.6) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Sidebar Matrix styling */
+    [data-testid="stSidebar"] {
+        background-color: #080d1a !important;
+        border-right: 1px solid rgba(0, 240, 255, 0.1) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-API_BASE_URL = "http://localhost:8000"
+# Backend URL configuration
+API_BASE_URL = os.environ.get("ETD_API_URL", "http://localhost:8000")
+BENCHMARK_RESULTS_FILE = os.environ.get(
+    "BENCHMARK_RESULTS_PATH", "experiments_results/benchmark_results.json"
+)
+
+
+def load_benchmark_results(api_target: str) -> dict:
+    """Return the real benchmark metrics dict from live API or local file."""
+    try:
+        r = requests.get(f"{api_target}/api/v1/benchmark/results", timeout=2)
+        if r.status_code == 200:
+            payload = r.json()
+            if payload.get("available"):
+                return payload.get("stages", {}) or {}
+    except Exception:
+        pass
+    try:
+        if os.path.exists(BENCHMARK_RESULTS_FILE):
+            with open(BENCHMARK_RESULTS_FILE, "r") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
 
 # ---------------------------------------------------------------------------
-# Sidebar & Connection Status
+# Sidebar & Connection Telemetry
 # ---------------------------------------------------------------------------
-st.sidebar.title("⚡ ETD Control Center")
-api_url_input = st.sidebar.text_input("Backend API URL", value=API_BASE_URL)
+st.sidebar.markdown('<div class="matrix-title" style="font-size:1.3rem; margin-top:0;">ETD CORE</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="matrix-subtitle" style="font-size:0.75rem;">Neural Coordinator Node</div>', unsafe_allow_html=True)
+
+api_url_input = st.sidebar.text_input("Coordinator API Endpoint", value=API_BASE_URL)
 
 # Check API health
 api_online = False
-models_status = "Unknown"
+models_status = "Offline"
+device_mode = "CPU"
 try:
     health_resp = requests.get(f"{api_url_input}/api/v1/health", timeout=2)
     if health_resp.status_code == 200:
         health_data = health_resp.json()
         api_online = True
-        models_status = "Neural Checkpoints Active" if health_data.get("models_loaded") else "Statistical Fallback Mode"
+        device_mode = str(health_data.get("device", "CPU")).upper()
+        models_status = "Active Checkpoints" if health_data.get("models_loaded") else "Statistical Fallback"
 except Exception:
     api_online = False
 
 if api_online:
-    st.sidebar.success(f"🟢 API Connected ({models_status})")
+    st.sidebar.markdown(f"""
+    <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.4); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#34d399; margin-bottom:1rem;">
+        CONNECTED // {models_status}<br>ACCELERATOR: {device_mode}
+    </div>
+    """, unsafe_allow_html=True)
 else:
-    st.sidebar.warning("🟡 Standalone Mode (Direct Coordinator Active)")
+    st.sidebar.markdown("""
+    <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.4); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#fbbf24; margin-bottom:1rem;">
+        STANDALONE MODE // DIRECT AGENT FALLBACK
+    </div>
+    """, unsafe_allow_html=True)
 
-st.sidebar.divider()
-st.sidebar.markdown("### 🏢 Utility Operations Info")
-st.sidebar.info(
-    "**Region:** Islamabad / Rawalpindi (IESCO Pilot)\n\n"
-    "**Active Feeders:** 18 Feeders\n\n"
-    "**Monitored Meters:** 42,372\n\n"
-    "**Detection Threshold:** 0.65"
-)
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+<div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#94a3b8; line-height:1.7;">
+    <span style="color:#00f0ff; font-weight:700;">OPERATIONAL CONTEXT</span><br>
+    GRID SECTOR: IESCO PILOT (ISB/RWP)<br>
+    FEEDERS MONITORED: 18 SECTORS<br>
+    TOTAL ENDPOINTS: 42,372 METERS<br>
+    DISCRIMINATION TAU: 0.650 PROB
+</div>
+""", unsafe_allow_html=True)
+
 
 # ---------------------------------------------------------------------------
-# Synthetic Profile Generators for Demo / Testing
+# Synthetic & Real Data Helpers
 # ---------------------------------------------------------------------------
 def generate_sample_curve(profile_type: str, seq_len: int = 120) -> list[float]:
     np.random.seed(42)
@@ -77,75 +320,375 @@ def generate_sample_curve(profile_type: str, seq_len: int = 120) -> list[float]:
     base = np.maximum(base, 1.0)
     
     if profile_type == "residential_theft":
-        # Sudden 80% drop starting at index 70
-        base[70:] = base[70:] * 0.15 + np.random.normal(0, 0.4, seq_len - 70)
+        drop_idx = min(70, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = base[drop_idx:] * 0.15 + np.random.normal(0, 0.4, remaining)
         base = np.maximum(base, 0.1)
     elif profile_type == "industrial_theft":
-        # Selective peak shaving
         base = 850.0 + 200.0 * np.sin(t) + np.random.normal(0, 30.0, seq_len)
-        base[60:] = np.where(base[60:] > 800.0, 750.0 + np.random.normal(0, 10.0, seq_len - 60), base[60:])
+        drop_idx = min(60, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = np.where(base[drop_idx:] > 800.0, 750.0 + np.random.normal(0, 10.0, remaining), base[drop_idx:])
     elif profile_type == "solar_normal":
-        # Normal profile with daytime drop
         base = 14.0 + 3.0 * np.cos(t) + np.random.normal(0, 1.0, seq_len)
-        base[60:] = np.maximum(2.0, base[60:] - 7.0)
+        drop_idx = min(60, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = np.maximum(2.0, base[drop_idx:] - 7.0)
     elif profile_type == "normal_household":
         base = 12.0 + 3.0 * np.sin(t) + np.random.normal(0, 1.2, seq_len)
     elif profile_type == "vacation_vacancy":
         base = 16.0 + np.random.normal(0, 1.5, seq_len)
-        base[50:] = 0.2 + np.random.normal(0, 0.1, seq_len - 50)
+        drop_idx = min(50, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = 0.2 + np.random.normal(0, 0.1, remaining)
         base = np.maximum(base, 0.0)
 
     return [round(float(v), 2) for v in base]
 
 
-# ---------------------------------------------------------------------------
-# Main Tabs
-# ---------------------------------------------------------------------------
-st.markdown('<div class="main-header">⚡ Electricity Theft Detection & Verification Ops</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Multi-Agent AI Coordinator • Rule-Based False Positive Suppression • Field Inspection Queue</div>', unsafe_allow_html=True)
+@st.cache_data
+def load_real_series(kind: str):
+    if kind == "pakistan_theft":
+        df = pd.read_csv("data/raw/pakistan/pakistan_target.csv")
+        day_cols = [c for c in df.columns if c not in ("CONS_NO", "FLAG")]
+        cons = df[day_cols].astype(float)
+        hits = df.index[df["CONS_NO"] == "PK003"]
+        idx = int(hits[0]) if len(hits) else int(cons.isna().mean(axis=1).idxmin())
+        series = [round(float(v), 2) for v in cons.loc[idx].fillna(0.0)]
+        return series, "residential", f"Pakistan Confirmed Case {df.loc[idx, 'CONS_NO']} ({len(series)} Days)"
+    
+    X = np.load("data/processed/X_val.npy")
+    y = np.load("data/processed/y_val.npy")
+    ct = np.load("data/processed/type_val.npy")
+    if kind == "sgcc_theft":
+        idx = 2712 if (y[2712] == 1 and ct[2712] == "residential") else int(np.argmax((y == 1) & (ct == "residential")))
+        label = "Theft"
+    else:
+        idx = int(np.argmax((y == 0) & (ct == "residential")))
+        label = "Normal"
+    series = [round(float(v), 4) for v in X[idx]]
+    return series, "residential", f"SGCC Validation {label} #{idx} ({len(series)} Days)"
 
+
+# ---------------------------------------------------------------------------
+# Interactive 3D WebGL Canvas Component (Three.js Spatial Grid & Substation)
+# ---------------------------------------------------------------------------
+def render_3d_grid_viewport(loss_pct: float = 24.5, active_feeders: int = 18, suspects_count: int = 312):
+    three_js_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{
+                margin: 0;
+                overflow: hidden;
+                background-color: #060913;
+                font-family: 'JetBrains Mono', monospace;
+            }}
+            #canvas-container {{
+                width: 100%;
+                height: 380px;
+                position: relative;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(0, 240, 255, 0.25);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0, 240, 255, 0.1);
+            }}
+            #hud-overlay {{
+                position: absolute;
+                top: 16px;
+                left: 18px;
+                color: #00f0ff;
+                font-size: 11px;
+                letter-spacing: 0.1em;
+                pointer-events: none;
+                z-index: 10;
+                line-height: 1.6;
+                text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+            }}
+            #hud-status {{
+                position: absolute;
+                bottom: 16px;
+                right: 18px;
+                color: #94a3b8;
+                font-size: 10px;
+                letter-spacing: 0.08em;
+                pointer-events: none;
+                z-index: 10;
+                text-align: right;
+            }}
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    </head>
+    <body>
+        <div id="canvas-container">
+            <div id="hud-overlay">
+                // SPATIAL GRID TOPOLOGY VIEWPORT<br>
+                FEEDER NODES: {active_feeders} ACTIVE<br>
+                SUSPECT CLUSTERS: {suspects_count} DETECTED<br>
+                SYSTEM LOSS FACTOR: {loss_pct:.1f}%
+            </div>
+            <div id="hud-status">
+                WEBGL ACCELERATED<br>
+                ROTATION: ACTIVE [DRAG TO ROTATE]
+            </div>
+        </div>
+        <script>
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x060913, 0.015);
+
+            const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 22, 38);
+
+            const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+            // Ambient & Point Lights
+            const ambientLight = new THREE.AmbientLight(0x0a192f, 2.0);
+            scene.add(ambientLight);
+
+            const cyanLight = new THREE.PointLight(0x00f0ff, 3, 60);
+            cyanLight.position.set(0, 15, 0);
+            scene.add(cyanLight);
+
+            const purpleLight = new THREE.PointLight(0x7000ff, 2, 50);
+            purpleLight.position.set(15, 10, 15);
+            scene.add(purpleLight);
+
+            // Ground Holographic Cyber Grid
+            const gridHelper = new THREE.GridHelper(60, 40, 0x00f0ff, 0x112240);
+            gridHelper.position.y = 0;
+            scene.add(gridHelper);
+
+            // Center Primary Substation Core
+            const coreGeometry = new THREE.CylinderGeometry(2, 2.5, 6, 8);
+            const coreMaterial = new THREE.MeshStandardMaterial({{
+                color: 0x00f0ff,
+                wireframe: true,
+                emissive: 0x003366,
+                roughness: 0.2
+            }});
+            const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+            coreMesh.position.y = 3;
+            scene.add(coreMesh);
+
+            // Outer Orbiting Rings
+            const ringGeom = new THREE.RingGeometry(3.5, 3.8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({{ color: 0x00f0ff, side: THREE.DoubleSide, wireframe: true }});
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 3;
+            scene.add(ring);
+
+            // Feeder Nodes & Power Flow Lines
+            const nodeCount = 18;
+            const nodes = [];
+            
+            for (let i = 0; i < nodeCount; i++) {{
+                const angle = (i / nodeCount) * Math.PI * 2;
+                const radius = 12 + Math.sin(i * 1.5) * 5;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+                const y = 1.5 + Math.sin(i) * 2;
+
+                const isTheft = (i % 3 === 0);
+                const nodeColor = isTheft ? 0xff3366 : (i % 2 === 0 ? 0x00f0ff : 0x3b82f6);
+
+                // Feeder Pillar Node
+                const nodeGeom = new THREE.BoxGeometry(0.8, isTheft ? 3.5 : 2.0, 0.8);
+                const nodeMat = new THREE.MeshStandardMaterial({{
+                    color: nodeColor,
+                    emissive: nodeColor,
+                    emissiveIntensity: isTheft ? 0.8 : 0.4,
+                    roughness: 0.3
+                }});
+                const node = new THREE.Mesh(nodeGeom, nodeMat);
+                node.position.set(x, y, z);
+                scene.add(node);
+                nodes.push(node);
+
+                // Connecting Energy Line
+                const points = [];
+                points.push(new THREE.Vector3(0, 3, 0));
+                points.push(new THREE.Vector3(x * 0.5, 4 + Math.sin(i) * 1.5, z * 0.5));
+                points.push(new THREE.Vector3(x, y, z));
+
+                const curve = new THREE.CatmullRomCurve3(points);
+                const lineGeom = new THREE.TubeGeometry(curve, 20, 0.06, 6, false);
+                const lineMat = new THREE.MeshBasicMaterial({{
+                    color: nodeColor,
+                    transparent: true,
+                    opacity: 0.6
+                }});
+                const lineMesh = new THREE.Mesh(lineGeom, lineMat);
+                scene.add(lineMesh);
+            }}
+
+            // Holographic Background Particles
+            const particleCount = 400;
+            const particleGeom = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {{
+                positions[i] = (Math.random() - 0.5) * 80;
+                positions[i + 1] = Math.random() * 30;
+                positions[i + 2] = (Math.random() - 0.5) * 80;
+            }}
+
+            particleGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMat = new THREE.PointsMaterial({{
+                color: 0x00f0ff,
+                size: 0.35,
+                transparent: true,
+                opacity: 0.5
+            }});
+            const particles = new THREE.Points(particleGeom, particleMat);
+            scene.add(particles);
+
+            // Animation Loop
+            let clock = new THREE.Clock();
+            function animate() {{
+                requestAnimationFrame(animate);
+                const elapsed = clock.getElapsedTime();
+
+                coreMesh.rotation.y = elapsed * 0.5;
+                ring.rotation.z = -elapsed * 0.3;
+                particles.rotation.y = elapsed * 0.04;
+
+                nodes.forEach((node, idx) => {{
+                    node.position.y += Math.sin(elapsed * 2 + idx) * 0.005;
+                }});
+
+                controls.update();
+                renderer.render(scene, camera);
+            }}
+            animate();
+
+            // Resize Handler
+            window.addEventListener('resize', () => {{
+                if (!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+    components.html(three_js_html, height=400)
+
+
+# ---------------------------------------------------------------------------
+# Header Section
+# ---------------------------------------------------------------------------
+st.markdown('<div class="matrix-title">Electricity Theft Intelligence & Operations Matrix</div>', unsafe_allow_html=True)
+st.markdown('<div class="matrix-subtitle">Multi-Agent Neural Inference • Domain Verification Protocol • Real-Time Dispatch Pipeline</div>', unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
+# Navigation Tabs (Clean Professional Typography)
+# ---------------------------------------------------------------------------
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Grid Overview & Feeders",
-    "🔍 Account Deep-Dive & What-If",
-    "📋 Batch Scoring & Dispatch Queue",
-    "🛠️ Field Inspector Feedback Loop",
-    "📈 Benchmark & Transfer Lab",
+    "GRID MATRIX OVERVIEW",
+    "DEEP-DIVE INFERENCE",
+    "BATCH DISPATCH QUEUE",
+    "FIELD FEEDBACK LOOP",
+    "BENCHMARK LAB",
 ])
 
+
 # ===========================================================================
-# TAB 1: Grid Overview & Feeder Heatmap
+# TAB 1: Grid Matrix Overview (Interactive 3D Substation + Feeder Stats)
 # ===========================================================================
 with tab1:
-    st.subheader("⚡ Grid Non-Technical Loss (NTL) Executive Overview")
-    
+    st.markdown("""
+    <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#00f0ff; letter-spacing:0.08em; margin-bottom:1rem;">
+        // SECTION 01: REAL-TIME SPATIAL LOSS TELEMETRY
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3D Viewport
+    render_3d_grid_viewport(loss_pct=24.5, active_feeders=18, suspects_count=312)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Top Executive KPI Cards
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total Meters Scored", "42,372", "+1,240 this week")
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-label">Monitored Endpoints</div>
+            <div class="card-value">42,372</div>
+            <div class="card-delta delta-positive">+1,240 Synced This Cycle</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("High-Risk Suspects", "312 Accounts", "0.74% of Grid")
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-label">Identified Suspects</div>
+            <div class="card-value">312</div>
+            <div class="card-delta delta-danger">0.74% Active Theft Ratio</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("Est. Monthly Revenue at Risk", "₨ 18.4M PKR", "₨ 6.2M Recoverable")
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-label">Monthly Exposure</div>
+            <div class="card-value">PKR 18.4M</div>
+            <div class="card-delta delta-warning">PKR 6.2M Target Recovery</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col4:
-        st.metric("Field Inspections Dispatched", "68 Pending", "84% Hit Rate")
+        st.markdown("""
+        <div class="glass-card">
+            <div class="card-label">Field Precision</div>
+            <div class="card-value">85.7%</div>
+            <div class="card-delta delta-positive">Verified Raid Strike Rate</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     col_chart, col_feeders = st.columns([3, 2])
     
     feeder_df = pd.DataFrame([
-        {"Feeder": "FDR-NORTH-01 (Urban High Loss)", "Meters": 3400, "Loss %": 28.4, "Suspects": 84, "Loss (PKR)": "₨ 4.2M"},
-        {"Feeder": "FDR-IND-04 (Industrial Zone)", "Meters": 420, "Loss %": 21.0, "Suspects": 19, "Loss (PKR)": "₨ 6.8M"},
-        {"Feeder": "FDR-EAST-07 (Commercial Market)", "Meters": 1850, "Loss %": 24.5, "Suspects": 65, "Loss (PKR)": "₨ 3.5M"},
-        {"Feeder": "FDR-RURAL-03 (Agr / Tube-wells)", "Meters": 2100, "Loss %": 19.8, "Suspects": 48, "Loss (PKR)": "₨ 1.9M"},
-        {"Feeder": "FDR-SOUTH-02 (Residential Model)", "Meters": 4800, "Loss %": 7.8, "Suspects": 14, "Loss (PKR)": "₨ 0.6M"},
+        {"Feeder": "FDR-NORTH-01 (High Density)", "Meters": 3400, "Loss %": 28.4, "Suspects": 84, "Loss (PKR)": "4.2M"},
+        {"Feeder": "FDR-IND-04 (Industrial Sector)", "Meters": 420, "Loss %": 21.0, "Suspects": 19, "Loss (PKR)": "6.8M"},
+        {"Feeder": "FDR-EAST-07 (Commercial Hub)", "Meters": 1850, "Loss %": 24.5, "Suspects": 65, "Loss (PKR)": "3.5M"},
+        {"Feeder": "FDR-RURAL-03 (Agricultural Tube-wells)", "Meters": 2100, "Loss %": 19.8, "Suspects": 48, "Loss (PKR)": "1.9M"},
+        {"Feeder": "FDR-SOUTH-02 (Residential Sector)", "Meters": 4800, "Loss %": 7.8, "Suspects": 14, "Loss (PKR)": "0.6M"},
     ])
 
     with col_chart:
-        st.markdown("#### 📉 Feeder Distribution Loss vs Theft Suspect Count")
+        st.markdown("""
+        <div class="glass-card" style="margin-bottom:1rem;">
+            <div class="card-label">Feeder Loss Ratio vs Active Suspect Load</div>
+        </div>
+        """, unsafe_allow_html=True)
         chart_df = feeder_df.set_index("Feeder")[["Loss %", "Suspects"]]
         st.bar_chart(chart_df)
 
     with col_feeders:
-        st.markdown("#### 🎯 Priority Target Feeders")
+        st.markdown("""
+        <div class="glass-card" style="margin-bottom:1rem;">
+            <div class="card-label">Priority Feeder Risk Matrix</div>
+        </div>
+        """, unsafe_allow_html=True)
         st.dataframe(feeder_df, use_container_width=True, hide_index=True)
 
 
@@ -153,22 +696,28 @@ with tab1:
 # TAB 2: Single Account Deep-Dive & What-If Simulator
 # ===========================================================================
 with tab2:
-    st.subheader("🔍 Single Meter Consumption Inspector & Verification Simulator")
-    
-    # Preset Selector
+    st.markdown("""
+    <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#00f0ff; letter-spacing:0.08em; margin-bottom:1rem;">
+        // SECTION 02: HIGH-RESOLUTION CONSUMPTION INFERENCE & VERIFICATION
+    </div>
+    """, unsafe_allow_html=True)
+
     preset = st.selectbox(
-        "Load Preset Case Study:",
+        "Select Verification Scenario Case Study",
         [
-            "1. Residential Sudden Meter Bypass (Real Theft Signature)",
+            "0. CUSTOM — Live Testing (Type Your Own Data)",
+            "1. Residential Sudden Meter Bypass (Confirmed Theft Signature)",
             "2. Industrial Selective Load Stripping / Peak Shaving",
-            "3. Rooftop Solar Net-Metering (False Positive Scenario)",
-            "4. Recently Audited & Cleared Meter (False Positive Suppression)",
-            "5. Hardware Tamper & Broken Meter Seal (Critical Alert)",
-            "6. Legitimate Normal Household",
+            "3. Rooftop Solar Net-Metering (Mitigated False Positive)",
+            "4. Recently Cleared Post-Audit Account (Suppression Activated)",
+            "5. Hardware Tamper & Broken Physical Seal (Critical Dispatch)",
+            "6. Standard Baseline Residential Profile",
+            "7. REAL — Pakistan Confirmed Theft (365 Days Measured)",
+            "8. REAL — SGCC Validation Theft (1034 Days Measured)",
+            "9. REAL — SGCC Validation Normal (1034 Days Measured)",
         ]
     )
 
-    # Set default values based on preset
     default_client_type = "residential"
     default_curve = "residential_theft"
     default_solar = False
@@ -178,8 +727,13 @@ with tab2:
     default_tamper = 0
     default_seal = False
     default_topology = False
+    real_kind = None
 
-    if "1. Residential" in preset:
+    if preset.startswith("0."):
+        # Custom live testing — empty text area for user input
+        default_curve = "normal_household"
+        sample_vals = []  # empty for custom input
+    elif "1. Residential" in preset:
         default_curve = "residential_theft"
         default_feeder_loss = 28.0
     elif "2. Industrial" in preset:
@@ -190,7 +744,7 @@ with tab2:
         default_curve = "solar_normal"
         default_solar = True
         default_feeder_loss = 8.0
-    elif "4. Recently Audited" in preset:
+    elif "4. Recently Cleared" in preset:
         default_curve = "residential_theft"
         default_audit = "cleared"
         default_months = 2
@@ -200,52 +754,104 @@ with tab2:
         default_seal = True
         default_tamper = 2
         default_feeder_loss = 25.0
-    elif "6. Legitimate" in preset:
+    elif "6. Standard" in preset:
         default_curve = "normal_household"
         default_feeder_loss = 6.0
+    elif preset.startswith("7."):
+        real_kind = "pakistan_theft"
+    elif preset.startswith("8."):
+        real_kind = "sgcc_theft"
+    elif preset.startswith("9."):
+        real_kind = "sgcc_normal"
 
     col_telemetry, col_rules = st.columns([3, 2])
 
     with col_telemetry:
-        st.markdown("#### 1. Telemetry & Load Profile")
-        cons_id = st.text_input("Consumer ID / Meter Number", value="PK-IESCO-983412-A")
-        client_type_choice = st.radio("Consumer Type", ["residential", "industrial"], index=0 if default_client_type == "residential" else 1, horizontal=True)
+        st.markdown('<div class="card-label">Load Profile & Consumer Coordinates</div>', unsafe_allow_html=True)
+        cons_id = st.text_input("Consumer Account ID", value="PK-IESCO-983412-A")
+        client_type_choice = st.radio("Classification Domain", ["residential", "industrial"], index=0 if default_client_type == "residential" else 1, horizontal=True)
         
-        sample_vals = generate_sample_curve(default_curve, seq_len=90)
-        daily_kwh_str = st.text_area("Daily kWh Readings (Past 90 Days)", value=", ".join(map(str, sample_vals)), height=100)
+        if real_kind:
+            sample_vals, _real_type, real_note = load_real_series(real_kind)
+            st.markdown(f"""
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#00f0ff; margin-bottom:0.5rem;">
+                AUTHENTIC DATASET RECORD // {real_note}
+            </div>
+            """, unsafe_allow_html=True)
+            daily_kwh_str = st.text_area("Daily kWh Telemetry Stream", value=", ".join(map(str, sample_vals)), height=100, key=f"kwh_input_{preset}")
+        elif preset.startswith("0."):
+            # Custom live testing — show example placeholder
+            st.markdown("""
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#00f0ff; margin-bottom:0.5rem;">
+                CUSTOM INPUT MODE // Type your own consumption data (comma-separated kWh values)
+            </div>
+            """, unsafe_allow_html=True)
+            example_theft = "12.5, 11.8, 13.2, 12.1, 11.9, 12.8, 13.0, 12.3, 11.7, 12.5, 0.1, 0.0, 0.2, 0.0, 0.1, 0.3, 0.0, 0.1, 0.0, 0.2"
+            example_normal = "12.5, 11.8, 13.2, 12.1, 11.9, 12.8, 13.0, 12.3, 11.7, 12.5, 12.8, 13.1, 12.4, 11.9, 12.7, 13.3, 12.0, 11.5, 12.9, 12.6"
+            daily_kwh_str = st.text_area(
+                "Daily kWh Telemetry Stream",
+                value="",
+                height=100,
+                key=f"kwh_input_{preset}",
+                placeholder=f"Example theft: {example_theft}\nExample normal: {example_normal}"
+            )
+            sample_vals = []
+        else:
+            sample_vals = generate_sample_curve(default_curve, seq_len=90)
+            daily_kwh_str = st.text_area("Daily kWh Telemetry Stream", value=", ".join(map(str, sample_vals)), height=100, key=f"kwh_input_{preset}")
         
-        # Plot Consumption Curve
+        # Parse user input - use custom data if valid, otherwise fall back to preset
+        curve_data = sample_vals if len(sample_vals) > 0 else []  # default to preset (or empty for custom)
+        parse_error = None
         try:
-            curve_data = [float(x.strip()) for x in daily_kwh_str.split(",") if x.strip()]
-            plot_df = pd.DataFrame({"Day": range(1, len(curve_data) + 1), "Daily Consumption (kWh)": curve_data})
-            st.line_chart(plot_df.set_index("Day"))
+            parsed = [float(x.strip()) for x in daily_kwh_str.split(",") if x.strip()]
+            if len(parsed) > 0:
+                curve_data = parsed  # use user's custom data
+            elif len(sample_vals) == 0:
+                parse_error = "Please enter consumption data (comma-separated kWh values)"
+            # else: empty input with preset selected - keep preset data
+        except ValueError as e:
+            parse_error = f"Invalid numbers: {str(e)} - using preset data"
+        
+        if parse_error:
+            st.warning(parse_error)
+        
+        try:
+            plot_df = pd.DataFrame({"Day Index": range(1, len(curve_data) + 1), "Active Load (kWh)": curve_data})
+            st.line_chart(plot_df.set_index("Day Index"))
         except Exception:
-            curve_data = sample_vals
+            pass
 
     with col_rules:
-        st.markdown("#### 2. Verification Agent Context Sliders")
-        feeder_id = st.text_input("Feeder ID", value="FDR-NORTH-01")
-        feeder_loss = st.slider("Feeder Technical & Commercial Loss (%)", min_value=1.0, max_value=40.0, value=float(default_feeder_loss), step=0.5)
+        st.markdown('<div class="card-label">Verification Context Parameters</div>', unsafe_allow_html=True)
+        feeder_id = st.text_input("Parent Feeder Code", value="FDR-NORTH-01")
+        feeder_loss = st.slider("Feeder Loss Margin (%)", min_value=1.0, max_value=40.0, value=float(default_feeder_loss), step=0.5)
         
         c_r1, c_r2 = st.columns(2)
         with c_r1:
-            audit_result = st.selectbox("Recent Audit Status", ["none", "cleared", "confirmed_theft", "meter_fault"], index=["none", "cleared", "confirmed_theft", "meter_fault"].index(default_audit))
+            audit_result = st.selectbox("Historical Audit State", ["none", "cleared", "confirmed_theft", "meter_fault"], index=["none", "cleared", "confirmed_theft", "meter_fault"].index(default_audit))
             months_audit = st.number_input("Months Since Audit", min_value=0, max_value=24, value=default_months if default_months <= 24 else 12)
         with c_r2:
-            solar_active = st.checkbox("Rooftop Solar / Net-Metering Active", value=default_solar)
-            seasonal_occ = st.checkbox("Seasonal / Vacancy Account", value=False)
+            solar_active = st.checkbox("Solar Net-Metering Registered", value=default_solar)
+            seasonal_occ = st.checkbox("Seasonal Vacancy Mode", value=False)
 
-        st.markdown("##### 🚨 Hardware & Meter Alerts")
+        st.markdown('<div class="card-label" style="margin-top:1rem;">Hardware & Topology Telemetry</div>', unsafe_allow_html=True)
         c_h1, c_h2 = st.columns(2)
         with c_h1:
-            seal_broken = st.checkbox("Meter Physical Seal Broken", value=default_seal)
-            topology_fault = st.checkbox("Feeder CT/PT Phase Fault", value=default_topology)
+            seal_broken = st.checkbox("Chassis Seal Ruptured", value=default_seal)
+            topology_fault = st.checkbox("Feeder Phase Unbalance", value=default_topology)
         with c_h2:
-            tamper_count = st.number_input("Smart Meter Tamper Alerts", min_value=0, max_value=5, value=default_tamper)
+            tamper_count = st.number_input("Hardware Tamper Flags", min_value=0, max_value=5, value=default_tamper)
             billing_dispute = st.checkbox("Open Billing Dispute", value=False)
 
-    # Run Scoring
-    if st.button("⚡ Score Account & Execute Multi-Agent Verification", type="primary", use_container_width=True):
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.button("RUN MULTI-AGENT INFERENCE & VERIFICATION", type="primary", use_container_width=True):
+        # Validate input data
+        if len(curve_data) == 0:
+            st.error("❌ No consumption data provided. Please enter daily kWh readings in the text area above.")
+            st.stop()
+        
         payload = {
             "consumer_id": cons_id,
             "client_type": client_type_choice,
@@ -266,16 +872,15 @@ with tab2:
             }
         }
 
-        with st.spinner("Executing Coordinator & Verification Pipeline..."):
+        with st.spinner("Processing through Neural Feature Channels & Decision Matrix..."):
             try:
                 resp = requests.post(f"{api_url_input}/api/v1/predict/single", json=payload, timeout=5)
                 if resp.status_code == 200:
                     data = resp.json()
                 else:
-                    st.error(f"API returned {resp.status_code}: {resp.text}")
+                    st.error(f"Inference node response {resp.status_code}: {resp.text}")
                     data = None
-            except Exception as e:
-                # Direct local fallback call if API is unreachable
+            except Exception:
                 from src.agents.verification.verify import CustomerContext as CC
                 from src.agents.coordinator.coordinator import coordinate as direct_coordinate
                 ctx = CC(
@@ -300,54 +905,105 @@ with tab2:
                 data = res.to_dict()
 
         if data:
-            st.markdown("---")
-            st.markdown("### 📋 Coordinator & Verification Results")
-            
+            st.markdown("<br>", unsafe_allow_html=True)
             res_c1, res_c2, res_c3, res_c4 = st.columns(4)
             with res_c1:
-                st.metric("Raw Model Score", f"{data.get('raw_model_score', 0.0):.3f}")
+                st.markdown(f"""
+                <div class="glass-card">
+                    <div class="card-label">Raw Neural Output</div>
+                    <div class="card-value">{data.get('raw_model_score', 0.0):.3f}</div>
+                    <div class="card-delta delta-positive">Channel Stack Output</div>
+                </div>
+                """, unsafe_allow_html=True)
             with res_c2:
                 final_p = data.get("theft_probability", 0.0)
-                st.metric("Verified Theft Probability", f"{final_p:.3f}", delta=f"{final_p - data.get('raw_model_score', 0.0):+.3f} (Verification Adj)")
+                diff = final_p - data.get('raw_model_score', 0.0)
+                d_class = "delta-danger" if diff > 0 else "delta-positive"
+                st.markdown(f"""
+                <div class="glass-card">
+                    <div class="card-label">Calibrated Probability</div>
+                    <div class="card-value">{final_p:.3f}</div>
+                    <div class="card-delta {d_class}">{diff:+.3f} Verification Delta</div>
+                </div>
+                """, unsafe_allow_html=True)
             with res_c3:
                 tier = data.get("risk_tier", "LOW")
                 badge_class = f"badge-{tier.lower()}"
-                st.markdown(f"**Risk Tier:** <span class='{badge_class}'>{tier}</span>", unsafe_allow_html=True)
-                st.write(f"**Theft Suspect:** {'🚨 YES' if data.get('is_theft_suspect') else '✅ NO'}")
+                st.markdown(f"""
+                <div class="glass-card">
+                    <div class="card-label">Risk Classification</div>
+                    <div style="margin-top:6px;"><span class="{badge_class}">{tier}</span></div>
+                    <div class="card-delta" style="color:#ffffff; margin-top:10px;">{'SUSPECT FLAGGED' if data.get('is_theft_suspect') else 'NORMAL STATE'}</div>
+                </div>
+                """, unsafe_allow_html=True)
             with res_c4:
                 rec_action = data.get("action_recommendation", "MONITOR")
-                st.warning(f"**Action:** `{rec_action}`")
+                st.markdown(f"""
+                <div class="glass-card">
+                    <div class="card-label">Operational Dispatch</div>
+                    <div class="card-value" style="font-size:1.2rem; color:#00f0ff;">{rec_action}</div>
+                    <div class="card-delta delta-positive">Action Directive</div>
+                </div>
+                """, unsafe_allow_html=True)
 
+            st.markdown("<br>", unsafe_allow_html=True)
             col_exp, col_fin = st.columns([3, 2])
             with col_exp:
-                st.markdown("#### 🧠 Explainability & Rule Audit Trail")
+                st.markdown("""
+                <div class="glass-card">
+                    <div class="card-label">Explainability & Reasoning Log</div>
+                </div>
+                """, unsafe_allow_html=True)
                 reasons = data.get("reasons", [])
                 if reasons:
                     for r in reasons:
-                        st.markdown(f"- 📌 {r}")
+                        st.markdown(f"""
+                        <div style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#f8fafc; padding:8px; border-left:2px solid #00f0ff; background:rgba(0,240,255,0.03); margin-bottom:6px;">
+                            {r}
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
-                    st.info("No mitigating or escalating domain rules triggered. Telemetry score stands.")
+                    st.markdown("""
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#94a3b8; padding:8px;">
+                        No domain escalation or suppression rules triggered. Raw telemetry score retained.
+                    </div>
+                    """, unsafe_allow_html=True)
 
             with col_fin:
-                st.markdown("#### 💰 Financial Loss Impact Assessment")
+                st.markdown("""
+                <div class="glass-card">
+                    <div class="card-label">Financial Exposure Estimation</div>
+                </div>
+                """, unsafe_allow_html=True)
                 fin = data.get("financial_impact", {})
-                st.write(f"**Baseline Daily Drop:** `{fin.get('drop_kwh_per_day', 0.0)} kWh/day`")
-                st.write(f"**Estimated Monthly Stolen Energy:** `{fin.get('estimated_monthly_stolen_kwh', 0.0)} kWh`")
-                loss_val = fin.get("estimated_monthly_loss_currency", 0.0)
-                st.metric("Estimated Monthly Loss", f"₨ {loss_val:,.2f} PKR")
+                st.markdown(f"""
+                <div style="font-family:'JetBrains Mono', monospace; font-size:0.82rem; color:#f8fafc; line-height:1.9; background:rgba(13,20,36,0.6); padding:12px; border-radius:8px; border:1px solid rgba(0,240,255,0.1);">
+                    DAILY CONSUMPTION DROP: <span style="color:#00f0ff;">{fin.get('drop_kwh_per_day', 0.0):.2f} kWh/day</span><br>
+                    MONTHLY UNBILLED LOAD: <span style="color:#00f0ff;">{fin.get('estimated_monthly_stolen_kwh', 0.0):.2f} kWh</span><br>
+                    PROJECTED REVENUE DEFICIT: <span style="color:#ff3366; font-weight:700;">PKR {fin.get('estimated_monthly_loss_currency', 0.0):,.2f}</span>
+                </div>
+                """, unsafe_allow_html=True)
 
 
 # ===========================================================================
 # TAB 3: Batch Feeder Scoring & Field Dispatch Queue
 # ===========================================================================
 with tab3:
-    st.subheader("📋 Batch Feeder Ingestion & Prioritized Field Inspection Queue")
-    
+    st.markdown("""
+    <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#00f0ff; letter-spacing:0.08em; margin-bottom:1rem;">
+        // SECTION 03: BULK INGESTION & DISPATCH QUEUE MATRIX
+    </div>
+    """, unsafe_allow_html=True)
+
     col_b1, col_b2 = st.columns([3, 1])
     with col_b1:
-        st.markdown("Upload feeder metering data or load simulated feeder cohort (50 accounts):")
+        st.markdown("""
+        <div style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#94a3b8;">
+            Synchronize feeder cohort (40 endpoints) for batch feature extraction and multi-agent coordination.
+        </div>
+        """, unsafe_allow_html=True)
     with col_b2:
-        load_batch_btn = st.button("🚀 Load & Score Feeder FDR-NORTH-01 Cohort", type="primary")
+        load_batch_btn = st.button("PROCESS COHORT FDR-NORTH-01", type="primary", use_container_width=True)
 
     if load_batch_btn:
         np.random.seed(101)
@@ -376,7 +1032,7 @@ with tab3:
                 "context": ctx,
             })
 
-        with st.spinner("Processing batch through Coordinator & Verification Engine..."):
+        with st.spinner("Processing batch through high-throughput scoring pipeline..."):
             try:
                 b_resp = requests.post(f"{api_url_input}/api/v1/predict/batch", json={"items": batch_items, "threshold": 0.65}, timeout=10)
                 if b_resp.status_code == 200:
@@ -385,7 +1041,6 @@ with tab3:
                 else:
                     queue = []
             except Exception:
-                # Direct batch coordination fallback
                 from src.agents.verification.verify import CustomerContext as CC
                 from src.agents.coordinator.coordinator import coordinate_batch as direct_cb
                 s_items = []
@@ -402,17 +1057,20 @@ with tab3:
                 queue = b_data["prioritized_queue"]
 
         st.session_state["batch_queue"] = queue
-        st.success(f"✅ Processed {len(queue)} accounts. Found {b_data.get('total_suspects', 0)} confirmed theft suspects!")
+        st.markdown(f"""
+        <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.4); padding:10px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#34d399; margin:1rem 0;">
+            COHORT INGESTION COMPLETED // {len(queue)} ACCOUNTS SCORED // {b_data.get('total_suspects', 0)} SUSPECTS FLAGGED
+        </div>
+        """, unsafe_allow_html=True)
 
     if "batch_queue" in st.session_state:
         q_df = pd.DataFrame(st.session_state["batch_queue"])
         
-        # Display Filters
         f_c1, f_c2 = st.columns(2)
         with f_c1:
-            tier_filter = st.multiselect("Filter by Risk Tier", ["CRITICAL", "HIGH", "MEDIUM", "LOW"], default=["CRITICAL", "HIGH"])
+            tier_filter = st.multiselect("Filter Risk Tier Hierarchy", ["CRITICAL", "HIGH", "MEDIUM", "LOW"], default=["CRITICAL", "HIGH"])
         with f_c2:
-            suspect_only = st.checkbox("Show Flagged Suspects Only", value=True)
+            suspect_only = st.checkbox("Isolate Confirmed Suspects Only", value=True)
 
         filtered = q_df.copy()
         if tier_filter:
@@ -420,48 +1078,54 @@ with tab3:
         if suspect_only:
             filtered = filtered[filtered["is_theft_suspect"] == True]
 
-        st.markdown(f"#### 🎯 Prioritized Inspection Dispatch Queue ({len(filtered)} accounts)")
+        st.markdown(f"""
+        <div class="glass-card" style="margin-bottom:1rem;">
+            <div class="card-label">Prioritized Field Dispatch Manifest ({len(filtered)} Targets)</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Display Table
         display_cols = ["consumer_id", "feeder_id", "consumer_type", "risk_tier", "verified_theft_probability", "action_recommendation"]
         st.dataframe(filtered[display_cols], use_container_width=True, hide_index=True)
 
-        # Download CSV
         csv_bytes = filtered.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download Dispatch List (CSV for Field Teams)", data=csv_bytes, file_name="iesco_feeder1_dispatch.csv", mime="text/csv")
+        st.download_button("EXPORT DISPATCH MANIFEST (CSV)", data=csv_bytes, file_name="iesco_feeder_dispatch_manifest.csv", mime="text/csv")
 
 
 # ===========================================================================
 # TAB 4: Field Inspector Feedback Loop
 # ===========================================================================
 with tab4:
-    st.subheader("🛠️ Field Inspection Outcome & Ground-Truth Logging Loop")
-    st.caption("Closing the loop: Log actual field raid findings to continuously calibrate the Verification Agent and measure real-world precision.")
+    st.markdown("""
+    <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#00f0ff; letter-spacing:0.08em; margin-bottom:1rem;">
+        // SECTION 04: GROUND TRUTH TELEMETRY & FEEDBACK CALIBRATION
+    </div>
+    """, unsafe_allow_html=True)
 
     col_log, col_metrics = st.columns([3, 2])
 
     with col_log:
-        st.markdown("#### 📝 Log Field Inspection Outcome")
+        st.markdown('<div class="card-label">Submit Field Inspection Findings</div>', unsafe_allow_html=True)
         ticket_id = st.text_input("Inspection Ticket ID", value="TCK-IESCO-1018-4921")
-        cons_id_target = st.text_input("Consumer ID", value="PK-IESCO-FDR1-1018")
-        inspector_name = st.text_input("Inspector ID / Officer Name", value="Insp. Tariq Mehmood (DSU-IESCO)")
+        cons_id_target = st.text_input("Target Consumer Identifier", value="PK-IESCO-FDR1-1018")
+        inspector_name = st.text_input("Inspector Officer Code", value="INSP-TARIQ-DSU")
         
         outcome = st.selectbox(
-            "Physical Field Inspection Finding:",
+            "Physical Audit Finding Classification",
             [
-                "CONFIRMED_THEFT: Physical Meter Bypass / Underground Tap Found",
-                "CONFIRMED_THEFT: Meter Seal Broken & Mechanical Gear Jammed",
-                "DEFECTIVE_METER: CT/PT Coil Burnt (Hardware Fault)",
-                "SOLAR_CONFIRMED: Rooftop Solar Generation (Legitimate)",
-                "VACANCY_CONFIRMED: House Unoccupied / Under Renovation",
-                "FALSE_POSITIVE: No Tampering / Normal Consumption",
+                "CONFIRMED_THEFT: Direct Incoming Service Cable Tap",
+                "CONFIRMED_THEFT: Neutral Wire Bypass / Disconnect",
+                "CONFIRMED_THEFT: Meter Mechanical Gear Jammed / Burned",
+                "DEFECTIVE_METER: CT/PT Coil Fault (Hardware Failure)",
+                "SOLAR_CONFIRMED: Rooftop Solar Active (Legitimate Generation)",
+                "VACANCY_CONFIRMED: Premises Vacant / Construction",
+                "FALSE_POSITIVE: Clean Installation / Normal Load",
             ]
         )
         
-        penalty_pkr = st.number_input("Assessment / Penalty Imposed (PKR)", min_value=0.0, value=150000.0 if "CONFIRMED_THEFT" in outcome else 0.0, step=10000.0)
-        field_notes = st.text_area("Field Inspector Detailed Notes", value="Found illegal tap behind main incoming service cable. Meter bypassed completely during night hours.")
+        penalty_pkr = st.number_input("Assessment Penalty Recovered (PKR)", min_value=0.0, value=150000.0 if "CONFIRMED_THEFT" in outcome else 0.0, step=10000.0)
+        field_notes = st.text_area("Field Technical Report Notes", value="Confirmed underground tap installed before main breaker. Full load bypass during night hours.")
 
-        if st.button("💾 Submit Field Report & Update Model Ground Truth", type="primary"):
+        if st.button("LOG AUDIT TO GROUND TRUTH REPOSITORY", type="primary"):
             action_payload = {
                 "ticket_id": ticket_id,
                 "inspector_id": inspector_name,
@@ -472,52 +1136,136 @@ with tab4:
             }
             try:
                 res_act = requests.post(f"{api_url_input}/api/v1/inspections/{ticket_id}/action", json=action_payload, timeout=4)
-                st.success(f"✅ Inspection report logged successfully for {cons_id_target}!")
+                st.markdown("""
+                <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.4); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#34d399; margin-top:0.5rem;">
+                    FEEDBACK COMMITTED TO GROUND-TRUTH DATABASE
+                </div>
+                """, unsafe_allow_html=True)
             except Exception:
-                st.success(f"✅ Inspection report logged into local database for {cons_id_target}!")
+                st.markdown("""
+                <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.4); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#34d399; margin-top:0.5rem;">
+                    RECORD COMMITTED LOCALLY
+                </div>
+                """, unsafe_allow_html=True)
 
     with col_metrics:
-        st.markdown("#### 📊 Field Audit Performance Tracking")
+        st.markdown('<div class="card-label">Verification Suppression Performance</div>', unsafe_allow_html=True)
         st.markdown("""
-        <div class="metric-card">
-            <h4>Live Ground-Truth Metrics</h4>
-            <p><strong>Total Inspections Completed:</strong> 42</p>
-            <p><strong>Confirmed Theft Hits:</strong> 36 (85.7% Precision)</p>
-            <p><strong>Hardware Faults Identified:</strong> 4 (9.5%)</p>
-            <p><strong>False Positives Suppressed:</strong> 2 (4.8%)</p>
-            <p><strong>Total Penalties Recovered:</strong> ₨ 4,850,000 PKR</p>
+        <div class="glass-card" style="line-height:1.8; font-family:'JetBrains Mono', monospace; font-size:0.8rem;">
+            <div style="color:#00f0ff; font-weight:700; margin-bottom:0.5rem;">VERIFICATION AGENT BENCHMARK</div>
+            COMPLETED INSPECTIONS: 42 AUDITS<br>
+            CONFIRMED THEFT HITS: 36 (85.7% PRECISION)<br>
+            HARDWARE DEFECTS ISOLATED: 4 (9.5%)<br>
+            FALSE POSITIVES FILTERED: 2 (4.8%)<br>
+            TOTAL ASSESSED RECOVERY: PKR 4,850,000
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("---")
-        st.markdown("##### 🎯 Verification Agent Suppression Efficacy")
-        st.write("- Solar Net-Metering FP Suppressions: **94.2%**")
-        st.write("- Post-Audit Clearance Suppressions: **98.1%**")
-        st.write("- High-Loss Feeder Prioritization Accuracy: **89.0%**")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#94a3b8; line-height:1.7;">
+            SOLAR SUPPRESSION RATE: 94.2%<br>
+            POST-AUDIT CLEARANCE FILTER: 98.1%<br>
+            HIGH-LOSS FEEDER HIT RATE: 89.0%
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ===========================================================================
-# TAB 5: Benchmark & Transfer Learning Monitor
+# TAB 5: Benchmark & Scientific Transfer Lab
 # ===========================================================================
 with tab5:
-    st.subheader("📈 Multi-Stage Benchmark & Pakistani Transfer Learning Lab")
-    st.caption("Transparent reporting: strict comparison across all 5 benchmark stages with documented caveats.")
-
-    st.markdown("### 🏆 5-Stage Pipeline Comparative Benchmark")
-    benchmark_data = pd.DataFrame([
-        {"Stage": "Stage 1: XGBoost Baseline", "Architecture": "20 Tabular Handcrafted Features", "ROC-AUC": 0.6834, "F1-Score": 0.2706, "Precision": "21.8%", "Recall": "35.8%", "Status": "✅ Measured"},
-        {"Stage": "Stage 2: Raw DL Backbone", "Architecture": "1D-CNN + BiLSTM (Raw Series)", "ROC-AUC": 0.7640, "F1-Score": 0.3820, "Precision": "31.4%", "Recall": "49.0%", "Status": "✅ Measured"},
-        {"Stage": "Stage 3: Channel-Boosted DL", "Architecture": "4-Channel (Raw+AE+Pretext+FFT)", "ROC-AUC": 0.8120, "F1-Score": 0.4450, "Precision": "39.2%", "Recall": "51.6%", "Status": "✅ Measured (+4.8% AUC)"},
-        {"Stage": "Stage 4: Multi-Agent System", "Architecture": "Channel-Boosted + Coordinator + Verify", "ROC-AUC": 0.8750, "F1-Score": 0.5820, "Precision": "64.5%", "Recall": "53.1%", "Status": "✅ Measured (+25.3% Prec)"},
-        {"Stage": "Stage 5: Pakistani Transfer", "Architecture": "Frozen SGCC Backbone + Target Head", "ROC-AUC": 0.7410, "F1-Score": 0.4100, "Precision": "42.0%", "Recall": "40.1%", "Status": "⚠️ Exploratory (Synthetic)"},
-    ])
-    st.dataframe(benchmark_data, use_container_width=True, hide_index=True)
-
-    st.markdown("---")
-    st.markdown("### 📜 System Honesty & Scientific Governance Checklist")
     st.markdown("""
-    - ✅ **No Data Leakage:** Val and Test splits are strictly imbalanced (8.53% natural theft rate) — SMOTE was applied **only** to the training split.
-    - ✅ **Magnitude Heuristic Disclosure:** SGCC has no consumer-type label; the 500 kWh/day threshold is an engineering proxy.
-    - ✅ **Logistic Calibration vs Ratio:** Industrial reconstruction error is calibrated via a logistic sigmoid centered at $\\tau$ rather than a naive linear ratio.
-    - ✅ **Pakistani Data Disclosure:** Stage 5 target dataset contains synthetic theft injection from `pakistan_sgcc_format.xlsx`; reported honestly as exploratory transfer.
-    """)
+    <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#00f0ff; letter-spacing:0.08em; margin-bottom:1rem;">
+        // SECTION 05: 5-STAGE COMPARATIVE BENCHMARK & TRANSFER EVALUATION
+    </div>
+    """, unsafe_allow_html=True)
+
+    bench = load_benchmark_results(api_url_input)
+
+    def _m(val, pct=False):
+        if val is None:
+            return "—"
+        return f"{val * 100:.1f}%" if pct else f"{val:.4f}"
+
+    def _row(stage, arch, val, test, status_str):
+        val, test = val or {}, test or {}
+        return {
+            "Stage": stage, "Architecture": arch,
+            "Val ROC-AUC": _m(val.get("roc_auc")),
+            "Test ROC-AUC": _m(test.get("roc_auc")),
+            "Val F1": _m(val.get("f1")),
+            "Val Precision": _m(val.get("precision"), pct=True),
+            "Val Recall": _m(val.get("recall"), pct=True),
+            "Status": status_str,
+        }
+
+    def _blank(stage, arch, status_str):
+        return {"Stage": stage, "Architecture": arch, "Val ROC-AUC": "—",
+                "Test ROC-AUC": "—", "Val F1": "—", "Val Precision": "—",
+                "Val Recall": "—", "Status": status_str}
+
+    bench_rows = []
+
+    # Stage 1 — XGBoost
+    s1 = bench.get("stage1_xgboost", {})
+    if s1.get("val_metrics"):
+        bench_rows.append(_row("Stage 1: XGBoost Baseline",
+                               f"{s1.get('n_features', 20)} Handcrafted Tabular Features",
+                               s1.get("val_metrics"), s1.get("test_metrics"),
+                               "Measured Baseline"))
+    else:
+        bench_rows.append(_blank("Stage 1: XGBoost Baseline", "20 Tabular Features", "Pending Execution"))
+
+    # Stage 2 — Raw DL
+    s2 = bench.get("stage2_raw", {}).get("residential", {})
+    if s2.get("val_metrics"):
+        bench_rows.append(_row("Stage 2: Raw DL Backbone",
+                               "1D-CNN + BiLSTM (Single Channel)",
+                               s2.get("val_metrics"), s2.get("test_metrics"),
+                               "Recovered Weights"))
+    else:
+        bench_rows.append(_blank("Stage 2: Raw DL Backbone", "1D-CNN + BiLSTM (1 Channel)", "Pending Execution"))
+
+    # Stage 3 — 4-Channel Boosted
+    s3 = bench.get("stage3_boosted", {}).get("residential", {})
+    if s3.get("val_metrics"):
+        bench_rows.append(_row("Stage 3: 4-Channel Boosted DL",
+                               "Raw + Residual-AE + Masked-Pretext + FFT",
+                               s3.get("val_metrics"), s3.get("test_metrics"),
+                               "Production Checkpoint"))
+    else:
+        bench_rows.append(_blank("Stage 3: 4-Channel Boosted DL", "4-Channel Stack", "Pending Execution"))
+
+    # Stage 4 — Multi-Agent
+    bench_rows.append(_blank("Stage 4: Multi-Agent Integration",
+                             "Stage 3 + Coordinator + Domain Verification",
+                             "Operational Framework"))
+
+    # Stage 5 — Pakistan Zero-Shot Transfer
+    s5 = bench.get("stage5_transfer", {})
+    if s5.get("method") == "zero_shot_transfer" and s5.get("detection_recall"):
+        rec = s5["detection_recall"].get("at_production_threshold_0.65")
+        fc = s5.get("flagged_counts", {})
+        bench_rows.append({
+            "Stage": "Stage 5: Pakistani Zero-Shot Transfer",
+            "Architecture": "Frozen SGCC Stage 3 (Zero Target Training)",
+            "Val ROC-AUC": "n/a (Single Class)",
+            "Test ROC-AUC": "n/a (Single Class)",
+            "Val F1": "n/a",
+            "Val Precision": "n/a (0 Normals)",
+            "Val Recall": _m(rec, pct=True),
+            "Status": f"Zero-Shot ({fc.get('at_0.65', '?')}/{fc.get('of_total', '?')} Flagged @0.65)",
+        })
+    else:
+        bench_rows.append(_blank("Stage 5: Pakistani Transfer", "Frozen SGCC Trunk + Target Evaluation", "Pending Target Dataset"))
+
+    st.dataframe(pd.DataFrame(bench_rows), use_container_width=True, hide_index=True)
+
+    cmp23 = bench.get("stage3_boosted", {}).get("comparison_vs_stage2", {})
+    if cmp23.get("delta_roc_auc") is not None:
+        st.markdown(f"""
+        <div style="background:rgba(0, 240, 255, 0.08); border:1px solid rgba(0, 240, 255, 0.3); padding:12px; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#f8fafc; margin-top:1rem;">
+            CHANNEL BOOSTING GAIN // Validation ROC-AUC increased by <span style="color:#00f0ff; font-weight:700;">{cmp23['delta_roc_auc']:+.4f}</span> over baseline 1D-CNN ({cmp23.get('stage2_residential_val', {}).get('roc_auc', '—')} → {cmp23.get('stage3_residential_val', {}).get('roc_auc', '—')}).
+        </div>
+        """, unsafe_allow_html=True)

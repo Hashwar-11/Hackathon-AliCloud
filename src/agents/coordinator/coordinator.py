@@ -110,32 +110,17 @@ def coordinate(
     )
 
 
-def coordinate_batch(
-    scored_items: List[Dict[str, Any]],
-    threshold: float = 0.65,
-) -> Dict[str, Any]:
+def aggregate_results(results: List[ScoringResult]) -> Dict[str, Any]:
+    """Feeder-level aggregation + priority ranking over ALREADY-COORDINATED results.
+
+    Split out of coordinate_batch so callers that score accounts one-by-one can
+    aggregate the EXACT ScoringResults they produced instead of re-coordinating
+    stripped-down copies. The FastAPI batch endpoint relies on this: it routes
+    industrial accounts through the autoencoder and applies the full verification
+    context per account, then hands the finished results here for ranking.
     """
-    Processes and ranks a batch of scored accounts, aggregating feeder-level risk KPIs.
-    
-    Returns:
-        prioritized_queue: List of ScoringResults sorted by verified_theft_probability descending
-        feeder_summary: Feeder-level metrics (theft count, estimated total loss, risk index)
-    """
-    results: List[ScoringResult] = []
     feeder_stats: Dict[str, Dict[str, Any]] = {}
-
-    for item in scored_items:
-        res = coordinate(
-            consumer_id=item["consumer_id"],
-            consumer_type=item.get("consumer_type", "residential"),
-            residential_probability=item.get("residential_probability"),
-            industrial_reconstruction_error=item.get("industrial_reconstruction_error"),
-            industrial_tau=item.get("industrial_tau"),
-            context=item.get("context"),
-            threshold=threshold,
-        )
-        results.append(res)
-
+    for res in results:
         fid = res.feeder_id
         if fid not in feeder_stats:
             feeder_stats[fid] = {
@@ -153,14 +138,12 @@ def coordinate_batch(
             feeder_stats[fid]["critical_count"] += 1
         elif res.risk_tier == "HIGH":
             feeder_stats[fid]["high_count"] += 1
-        
         feeder_stats[fid]["total_loss_currency"] += res.financial_impact.get("estimated_monthly_loss_currency", 0.0)
         feeder_stats[fid]["total_stolen_kwh"] += res.financial_impact.get("estimated_monthly_stolen_kwh", 0.0)
 
-    # Sort results by priority: CRITICAL first, then highest theft probability
-    results.sort(key=lambda r: (r.risk_tier == "CRITICAL", r.verified_theft_probability), reverse=True)
+    # Sort CRITICAL first, then highest verified theft probability.
+    ranked = sorted(results, key=lambda r: (r.risk_tier == "CRITICAL", r.verified_theft_probability), reverse=True)
 
-    # Finalize feeder risk rankings
     for fid, stat in feeder_stats.items():
         suspect_rate = stat["suspect_count"] / max(1, stat["total_meters"])
         stat["theft_rate_pct"] = round(suspect_rate * 100.0, 2)
@@ -168,12 +151,39 @@ def coordinate_batch(
         stat["total_stolen_kwh"] = round(stat["total_stolen_kwh"], 2)
 
     return {
-        "prioritized_queue": [r.to_dict() for r in results],
+        "prioritized_queue": [r.to_dict() for r in ranked],
         "feeder_summary": feeder_stats,
         "total_analyzed": len(results),
         "total_suspects": sum(1 for r in results if r.is_theft_suspect),
         "total_estimated_monthly_loss": round(sum(r.financial_impact.get("estimated_monthly_loss_currency", 0.0) for r in results), 2),
     }
+
+
+def coordinate_batch(
+    scored_items: List[Dict[str, Any]],
+    threshold: float = 0.65,
+) -> Dict[str, Any]:
+    """
+    Coordinate each raw scored item, then aggregate into a prioritized queue.
+
+    Returns:
+        prioritized_queue: ScoringResults sorted CRITICAL-first, then by
+                           verified_theft_probability descending
+        feeder_summary:    per-feeder theft counts and estimated loss
+    """
+    results: List[ScoringResult] = [
+        coordinate(
+            consumer_id=item["consumer_id"],
+            consumer_type=item.get("consumer_type", "residential"),
+            residential_probability=item.get("residential_probability"),
+            industrial_reconstruction_error=item.get("industrial_reconstruction_error"),
+            industrial_tau=item.get("industrial_tau"),
+            context=item.get("context"),
+            threshold=threshold,
+        )
+        for item in scored_items
+    ]
+    return aggregate_results(results)
 if __name__ == "__main__":
     # Example 1: Normal residential account, likely a false positive (cleared audit)
     ctx1 = CustomerContext(

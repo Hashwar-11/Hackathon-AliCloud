@@ -106,9 +106,10 @@ def load_pakistan_data(csv_path: str, target_seq_len: int, outlier_sigma_cap: fl
         pad = np.zeros((consumption.shape[0], target_seq_len - T), dtype=np.float32)
         consumption = np.concatenate([pad, consumption], axis=1)
 
-    # Labels: FLAG = -1 → theft=1, otherwise 0
+    # Labels: FLAG = -1 (raw Pakistani sentinel) OR FLAG = 1 (the normalised SGCC
+    # convention that prepare_pakistan_target.py now writes) BOTH mean theft; FLAG = 0 = normal.
     flags  = df["FLAG"].astype(int).values
-    labels = np.where(flags == -1, 1, 0).astype(np.float32)
+    labels = np.where((flags == -1) | (flags >= 1), 1, 0).astype(np.float32)
 
     print(f"[Pakistan] Label distribution - Normal: {(labels==0).sum()}, Theft: {(labels==1).sum()}")
 
@@ -368,6 +369,20 @@ def main():
         outlier_sigma_cap=cfg["preprocessing"]["outlier_sigma_cap"]
     )
     print(f"[Fine-tune] Pakistan tensor shape: X={X_pk.shape}, y={y_pk.shape}")
+
+    # GUARD: a binary detector cannot be fine-tuned on a single class. With 42 confirmed
+    # theft rows and 0 normals, BCE pos_weight = n_neg/n_pos = 0 (ignores every positive)
+    # and ROC-AUC is undefined -- the run would emit a degenerate model and OVERWRITE the
+    # good SGCC weights (this already corrupted residential_stage3.pt once). Refuse instead.
+    n_pos = int((y_pk == 1).sum())
+    n_neg = int((y_pk == 0).sum())
+    if n_pos == 0 or n_neg == 0:
+        print(f"[Fine-tune] ABORT: Pakistani target is SINGLE-CLASS (theft={n_pos}, normal={n_neg}).")
+        print("[Fine-tune]   Fine-tuning on one class is degenerate (pos_weight=0, AUC undefined) "
+              "and would overwrite the good SGCC weights. No weights are written.")
+        print("[Fine-tune]   Run the honest ZERO-SHOT transfer evaluation instead:\n"
+              "              python -m src.experiments.stage5_zeroshot_pakistan --config config/config.yaml")
+        return
 
     if not args.skip_residential:
         finetune_residential(X_pk, y_pk, cfg, ckpt_dir, device)

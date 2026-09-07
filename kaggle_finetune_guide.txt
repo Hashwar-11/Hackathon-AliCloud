@@ -1,0 +1,192 @@
+# Kaggle GPU Fine-Tune Guide
+
+## What to Upload as Kaggle Dataset
+
+### Step 1: Create a ZIP file with these files
+
+```bash
+cd /home/catrovert/Desktop/Pieas/AliBaba\ Hackathon/finalproject/Hackathon-AliCloud
+
+# Create a directory for Kaggle upload
+mkdir -p kaggle_upload
+cd kaggle_upload
+
+# Copy necessary files
+cp -r ../src .
+cp -r ../models .
+cp -r ../config .
+cp -r ../data/raw/pakistan/pakistan_combined_synthetic.csv .
+cp -r ../data/processed .
+cp ../requirements.txt .
+
+# Create ZIP
+cd ..
+zip -r kaggle_finetune.zip kaggle_upload/
+```
+
+### Step 2: Upload to Kaggle
+
+1. Go to https://www.kaggle.com/datasets
+2. Click "New Dataset"
+3. Upload `kaggle_finetune.zip`
+4. Name it: `etd-finetune-data`
+
+---
+
+## Kaggle Notebook Code
+
+Create a new notebook at https://www.kaggle.com/notebooks
+
+### Cell 1: Install Dependencies
+
+```python
+!pip install torch torchvision torchaudio
+!pip install PyYAML scikit-learn pandas numpy
+!pip install xgboost
+```
+
+### Cell 2: Mount the Dataset
+
+```python
+import os
+import zipfile
+
+# Path to your uploaded dataset
+dataset_path = "/kaggle/input/etd-finetune-data/kaggle_upload"
+
+# Extract if needed
+if not os.path.exists("/kaggle/working/src"):
+    !cp -r {dataset_path}/* /kaggle/working/
+    
+os.chdir("/kaggle/working")
+print(f"Working directory: {os.getcwd()}")
+print(f"Files: {os.listdir('.')}")
+```
+
+### Cell 3: Verify Files
+
+```python
+import os
+
+# Check critical files
+files_to_check = [
+    "src/training/finetune_pakistan.py",
+    "models/checkpoints/residential_model_best.pt",
+    "config/config.yaml",
+    "data/raw/pakistan/pakistan_combined_synthetic.csv",
+    "data/processed/X_train.npy"
+]
+
+for f in files_to_check:
+    exists = os.path.exists(f)
+    print(f"{'✓' if exists else '✗'} {f}")
+    
+if not all(os.path.exists(f) for f in files_to_check):
+    raise RuntimeError("Missing files! Check dataset upload.")
+```
+
+### Cell 4: Run Fine-Tune
+
+```python
+import subprocess
+import sys
+
+# Run the fine-tune script
+result = subprocess.run(
+    [sys.executable, "-m", "src.training.finetune_pakistan", 
+     "--config", "config/config.yaml"],
+    capture_output=True,
+    text=True
+)
+
+print("STDOUT:")
+print(result.stdout)
+print("\nSTDERR:")
+print(result.stderr)
+print(f"\nReturn code: {result.returncode}")
+```
+
+### Cell 5: Evaluate Fine-Tuned Model
+
+```python
+# Run stage 5 transfer evaluation
+result = subprocess.run(
+    [sys.executable, "-m", "src.experiments.stage5_transfer",
+     "--config", "config/config.yaml",
+     "--target_csv", "data/raw/pakistan/pakistan_combined_synthetic.csv"],
+    capture_output=True,
+    text=True
+)
+
+print("STDOUT:")
+print(result.stdout)
+print("\nSTDERR:")
+print(result.stderr)
+```
+
+### Cell 6: Download Results
+
+```python
+from IPython.display import FileLink
+
+# List output files
+print("Output files:")
+for f in os.listdir("models/checkpoints"):
+    if "stage3" in f:
+        print(f"  {f}")
+        display(FileLink(f"models/checkpoints/{f}"))
+
+# Download benchmark results
+if os.path.exists("experiments_results/benchmark_results.json"):
+    print("\nBenchmark results:")
+    display(FileLink("experiments_results/benchmark_results.json"))
+```
+
+---
+
+## Expected Output
+
+After running, you should see:
+
+```
+[Fine-tune] Using combined dataset: data/raw/pakistan/pakistan_combined_synthetic.csv
+[Pakistan] Rows after dropping >50% NaN: 342
+[Pakistan] Label distribution - Normal: 300, Theft: 42
+[Fine-tune] Pakistan tensor shape: X=torch.Size([342, 1034]), y=torch.Size([342])
+[Residential] Loaded pretrained weights from models/checkpoints/residential_model_best.pt
+...
+✓ Fine-tuned on 42 real theft + 300 synthetic normal customers.
+  REPORT: Label as 'fine-tuned on synthetic normals' — not real DISCO data.
+```
+
+---
+
+## Time Estimate
+
+| Step | GPU Time | CPU Time |
+|---|---|---|
+| Fine-tune | 20-30 minutes | 2-4 hours |
+| Evaluate | 2-5 minutes | 15-30 minutes |
+| **Total** | **~30 minutes** | **~4 hours** |
+
+---
+
+## Important Notes
+
+1. **Use GPU**: In Kaggle notebook settings, enable "GPU T4 x2"
+2. **Session timeout**: Kaggle sessions timeout after 12 hours of inactivity — keep the tab open
+3. **Save outputs**: Download the fine-tuned checkpoints before session ends
+4. **Honest reporting**: Label results as "fine-tuned on synthetic normals"
+
+---
+
+## Quick Start
+
+1. Create ZIP: `zip -r kaggle_finetune.zip src/ models/ config/ data/ requirements.txt`
+2. Upload to Kaggle as dataset
+3. Create notebook with the 6 cells above
+4. Enable GPU in notebook settings
+5. Run all cells
+6. Download results
+
+Done in ~30 minutes!
