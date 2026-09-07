@@ -320,19 +320,31 @@ def generate_sample_curve(profile_type: str, seq_len: int = 120) -> list[float]:
     base = np.maximum(base, 1.0)
     
     if profile_type == "residential_theft":
-        base[70:] = base[70:] * 0.15 + np.random.normal(0, 0.4, seq_len - 70)
+        drop_idx = min(70, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = base[drop_idx:] * 0.15 + np.random.normal(0, 0.4, remaining)
         base = np.maximum(base, 0.1)
     elif profile_type == "industrial_theft":
         base = 850.0 + 200.0 * np.sin(t) + np.random.normal(0, 30.0, seq_len)
-        base[60:] = np.where(base[60:] > 800.0, 750.0 + np.random.normal(0, 10.0, seq_len - 60), base[60:])
+        drop_idx = min(60, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = np.where(base[drop_idx:] > 800.0, 750.0 + np.random.normal(0, 10.0, remaining), base[drop_idx:])
     elif profile_type == "solar_normal":
         base = 14.0 + 3.0 * np.cos(t) + np.random.normal(0, 1.0, seq_len)
-        base[60:] = np.maximum(2.0, base[60:] - 7.0)
+        drop_idx = min(60, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = np.maximum(2.0, base[drop_idx:] - 7.0)
     elif profile_type == "normal_household":
         base = 12.0 + 3.0 * np.sin(t) + np.random.normal(0, 1.2, seq_len)
     elif profile_type == "vacation_vacancy":
         base = 16.0 + np.random.normal(0, 1.5, seq_len)
-        base[50:] = 0.2 + np.random.normal(0, 0.1, seq_len - 50)
+        drop_idx = min(50, seq_len - 1)
+        remaining = seq_len - drop_idx
+        if remaining > 0:
+            base[drop_idx:] = 0.2 + np.random.normal(0, 0.1, remaining)
         base = np.maximum(base, 0.0)
 
     return [round(float(v), 2) for v in base]
@@ -693,6 +705,7 @@ with tab2:
     preset = st.selectbox(
         "Select Verification Scenario Case Study",
         [
+            "0. CUSTOM — Live Testing (Type Your Own Data)",
             "1. Residential Sudden Meter Bypass (Confirmed Theft Signature)",
             "2. Industrial Selective Load Stripping / Peak Shaving",
             "3. Rooftop Solar Net-Metering (Mitigated False Positive)",
@@ -716,7 +729,11 @@ with tab2:
     default_topology = False
     real_kind = None
 
-    if "1. Residential" in preset:
+    if preset.startswith("0."):
+        # Custom live testing — empty text area for user input
+        default_curve = "normal_household"
+        sample_vals = []  # empty for custom input
+    elif "1. Residential" in preset:
         default_curve = "residential_theft"
         default_feeder_loss = 28.0
     elif "2. Industrial" in preset:
@@ -761,17 +778,49 @@ with tab2:
                 AUTHENTIC DATASET RECORD // {real_note}
             </div>
             """, unsafe_allow_html=True)
+            daily_kwh_str = st.text_area("Daily kWh Telemetry Stream", value=", ".join(map(str, sample_vals)), height=100, key=f"kwh_input_{preset}")
+        elif preset.startswith("0."):
+            # Custom live testing — show example placeholder
+            st.markdown("""
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:#00f0ff; margin-bottom:0.5rem;">
+                CUSTOM INPUT MODE // Type your own consumption data (comma-separated kWh values)
+            </div>
+            """, unsafe_allow_html=True)
+            example_theft = "12.5, 11.8, 13.2, 12.1, 11.9, 12.8, 13.0, 12.3, 11.7, 12.5, 0.1, 0.0, 0.2, 0.0, 0.1, 0.3, 0.0, 0.1, 0.0, 0.2"
+            example_normal = "12.5, 11.8, 13.2, 12.1, 11.9, 12.8, 13.0, 12.3, 11.7, 12.5, 12.8, 13.1, 12.4, 11.9, 12.7, 13.3, 12.0, 11.5, 12.9, 12.6"
+            daily_kwh_str = st.text_area(
+                "Daily kWh Telemetry Stream",
+                value="",
+                height=100,
+                key=f"kwh_input_{preset}",
+                placeholder=f"Example theft: {example_theft}\nExample normal: {example_normal}"
+            )
+            sample_vals = []
         else:
             sample_vals = generate_sample_curve(default_curve, seq_len=90)
-            
-        daily_kwh_str = st.text_area("Daily kWh Telemetry Stream", value=", ".join(map(str, sample_vals)), height=100)
+            daily_kwh_str = st.text_area("Daily kWh Telemetry Stream", value=", ".join(map(str, sample_vals)), height=100, key=f"kwh_input_{preset}")
+        
+        # Parse user input - use custom data if valid, otherwise fall back to preset
+        curve_data = sample_vals if len(sample_vals) > 0 else []  # default to preset (or empty for custom)
+        parse_error = None
+        try:
+            parsed = [float(x.strip()) for x in daily_kwh_str.split(",") if x.strip()]
+            if len(parsed) > 0:
+                curve_data = parsed  # use user's custom data
+            elif len(sample_vals) == 0:
+                parse_error = "Please enter consumption data (comma-separated kWh values)"
+            # else: empty input with preset selected - keep preset data
+        except ValueError as e:
+            parse_error = f"Invalid numbers: {str(e)} - using preset data"
+        
+        if parse_error:
+            st.warning(parse_error)
         
         try:
-            curve_data = [float(x.strip()) for x in daily_kwh_str.split(",") if x.strip()]
             plot_df = pd.DataFrame({"Day Index": range(1, len(curve_data) + 1), "Active Load (kWh)": curve_data})
             st.line_chart(plot_df.set_index("Day Index"))
         except Exception:
-            curve_data = sample_vals
+            pass
 
     with col_rules:
         st.markdown('<div class="card-label">Verification Context Parameters</div>', unsafe_allow_html=True)
@@ -798,6 +847,11 @@ with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
 
     if st.button("RUN MULTI-AGENT INFERENCE & VERIFICATION", type="primary", use_container_width=True):
+        # Validate input data
+        if len(curve_data) == 0:
+            st.error("❌ No consumption data provided. Please enter daily kWh readings in the text area above.")
+            st.stop()
+        
         payload = {
             "consumer_id": cons_id,
             "client_type": client_type_choice,
