@@ -249,6 +249,18 @@ class InspectionActionRequest(BaseModel):
     consumer_id: Optional[str] = None
 
 
+class AssistantSummarizeRequest(BaseModel):
+    consumer_id: str
+    consumer_type: Optional[str] = "residential"
+    theft_probability: float
+    raw_model_score: Optional[float] = None
+    risk_tier: str
+    action_recommendation: str
+    reasons: List[str] = Field(default_factory=list)
+    financial_impact: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    context: Optional[Dict[str, Any]] = None
+
+
 # ---------------------------------------------------------------------------
 # Scoring Helper Functions
 # ---------------------------------------------------------------------------
@@ -544,3 +556,188 @@ def get_benchmark_results():
         except _json.JSONDecodeError:
             raise HTTPException(status_code=500, detail="benchmark_results.json is malformed.")
     return {"available": True, "path": BENCHMARK_RESULTS_PATH, "stages": data}
+
+
+# ---------------------------------------------------------------------------
+# Consumers & Operational Registry Endpoints
+# ---------------------------------------------------------------------------
+CUSTOMERS_JSON_PATH = os.environ.get("CUSTOMERS_JSON_PATH", "data/customer_contexts.json")
+PAKISTAN_TARGET_PATH = os.environ.get("PAKISTAN_TARGET_PATH", "data/raw/pakistan/pakistan_target.csv")
+
+
+def _load_raw_contexts() -> List[Dict[str, Any]]:
+    if os.path.exists(CUSTOMERS_JSON_PATH):
+        try:
+            import json as _json
+            with open(CUSTOMERS_JSON_PATH, "r") as f:
+                return _json.load(f)
+        except Exception:
+            return []
+    return []
+
+
+@app.get("/api/v1/consumers", tags=["Consumers"])
+def list_consumers(
+    feeder_id: Optional[str] = None,
+    tariff_category: Optional[str] = None,
+    has_solar: Optional[bool] = None,
+):
+    """Retrieve the registry of monitored consumers with real operational contexts."""
+    records = _load_raw_contexts()
+    if feeder_id:
+        records = [r for r in records if r.get("feeder_id") == feeder_id]
+    if tariff_category:
+        records = [r for r in records if r.get("tariff_category") == tariff_category]
+    if has_solar is not None:
+        records = [r for r in records if r.get("has_rooftop_solar") == has_solar]
+    return {
+        "count": len(records),
+        "consumers": records,
+    }
+
+
+@app.get("/api/v1/consumers/{consumer_id}", tags=["Consumers"])
+def get_consumer_details(consumer_id: str):
+    """Retrieve full operational metadata and time-series readings for a specific consumer."""
+    records = _load_raw_contexts()
+    match = next((r for r in records if r.get("consumer_id") == consumer_id), None)
+    if match is None:
+        raise HTTPException(status_code=404, detail=f"Consumer '{consumer_id}' not found in registry.")
+
+    # Retrieve daily series if present in Pakistani target dataset
+    daily_readings: List[float] = []
+    if os.path.exists(PAKISTAN_TARGET_PATH):
+        try:
+            import pandas as _pd
+            df = _pd.read_csv(PAKISTAN_TARGET_PATH)
+            hit = df[df["CONS_NO"] == consumer_id]
+            if len(hit) > 0:
+                day_cols = [c for c in df.columns if c not in ("CONS_NO", "FLAG")]
+                series = hit[day_cols].iloc[0].dropna().astype(float).tolist()
+                daily_readings = [round(float(v), 2) for v in series]
+        except Exception:
+            pass
+
+    return {
+        "consumer_id": consumer_id,
+        "context": match,
+        "daily_readings_count": len(daily_readings),
+        "daily_kwh": daily_readings,
+    }
+
+
+@app.get("/api/v1/statistics", tags=["System"])
+def get_system_statistics(db: Session = Depends(get_db)):
+    """Summary metrics across registered consumers, active dispatch queue, and audit ground-truth."""
+    records = _load_raw_contexts()
+    total_consumers = len(records)
+    feeders = sorted(list(set(r.get("feeder_id", "UNKNOWN") for r in records)))
+
+    tickets = db.query(Inspection).all()
+    total_tickets = len(tickets)
+    pending_tickets = sum(1 for t in tickets if t.status == "PENDING_DISPATCH")
+    completed_tickets = sum(1 for t in tickets if t.status == "COMPLETED")
+    confirmed_thefts = sum(1 for t in tickets if t.action_outcome == "CONFIRMED_THEFT" or (t.actual_theft_found is True))
+    penalties_recovered = sum(t.penalty_imposed or 0.0 for t in tickets)
+
+    return {
+        "status": "healthy",
+        "models_loaded": MODELS_LOADED,
+        "active_channels": ACTIVE_CHANNELS,
+        "device": DEVICE,
+        "total_monitored_consumers": total_consumers,
+        "feeders_monitored": feeders,
+        "total_feeders_count": len(feeders),
+        "total_tickets": total_tickets,
+        "pending_dispatches": pending_tickets,
+        "completed_audits": completed_tickets,
+        "confirmed_thefts_logged": confirmed_thefts,
+        "total_penalties_recovered_pkr": round(penalties_recovered, 2),
+    }
+
+
+@app.post("/api/v1/assistant/summarize", tags=["Intelligence"])
+def summarize_case(req: AssistantSummarizeRequest):
+    """
+    Generate an operational investigative summary of detection results.
+    Integrates with Alibaba Cloud Qwen (via DASHSCOPE_API_KEY / QWEN_API_KEY)
+    when configured, or provides a structured utility domain briefing offline.
+    The underlying ML prediction remains the strictly preserved ground truth.
+    """
+    api_key = os.environ.get("DASHSCOPE_API_KEY") or os.environ.get("QWEN_API_KEY")
+
+    reasons_text = "\n".join(f"- {r}" for r in req.reasons) if req.reasons else "No domain overrides applied; raw telemetry score retained."
+    fin = req.financial_impact or {}
+    drop_kwh = fin.get("drop_kwh_per_day", 0.0)
+    stolen_kwh = fin.get("estimated_monthly_stolen_kwh", 0.0)
+    loss_currency = fin.get("estimated_monthly_loss_currency", 0.0)
+
+    # If Alibaba Cloud DashScope API Key is present, call Qwen
+    if api_key:
+        try:
+            import requests as _requests
+            prompt = (
+                f"You are an expert power utility intelligence analyst assisting a Pakistani DISCO (e.g. IESCO, LESCO, MEPCO).\n"
+                f"Analyze the following electricity theft detection output for consumer {req.consumer_id}:\n\n"
+                f"- Risk Classification: {req.risk_tier}\n"
+                f"- Theft Probability: {req.theft_probability * 100:.1f}%\n"
+                f"- Operational Recommendation: {req.action_recommendation}\n"
+                f"- Daily Consumption Drop: {drop_kwh:.2f} kWh/day\n"
+                f"- Projected Monthly Loss: PKR {loss_currency:,.2f}\n"
+                f"- Verification Agent Evidence Logs:\n{reasons_text}\n\n"
+                f"Write a concise, high-clarity 3-paragraph executive briefing for field inspection officers.\n"
+                f"Paragraph 1: Risk Assessment & Evidence Summary.\n"
+                f"Paragraph 2: Financial Impact & Feeder Context.\n"
+                f"Paragraph 3: Specific Field Action Directive.\n"
+                f"Do not invent facts not present in the data."
+            )
+
+            # Support international and mainland DashScope endpoints
+            dashscope_url = os.environ.get(
+                "DASHSCOPE_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+            )
+            resp = _requests.post(
+                dashscope_url,
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": os.environ.get("QWEN_MODEL", "qwen-plus"),
+                    "messages": [
+                        {"role": "system", "content": "You are a professional power utility revenue protection analyst. Provide clear, objective, factual intelligence."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 500,
+                },
+                timeout=12,
+            )
+            if resp.status_code == 200:
+                result_json = resp.json()
+                content = result_json["choices"][0]["message"]["content"]
+                return {
+                    "source": "qwen_ai",
+                    "model": os.environ.get("QWEN_MODEL", "qwen-plus"),
+                    "summary": content,
+                }
+        except Exception:
+            pass  # Fall through gracefully to deterministic generator
+
+    # Deterministic high-clarity utility intelligence generator
+    lines = [
+        f"**EXECUTIVE BRIEFING // CONSUMER {req.consumer_id}**",
+        "",
+        f"**1. Risk Classification & Telemetry**: Evaluated as **{req.risk_tier} RISK** with a calibrated theft probability of **{req.theft_probability * 100:.1f}%**. "
+        f"Telemetry indicates an anomalous drop in consumption averaging {drop_kwh:.2f} kWh/day.",
+        "",
+        f"**2. Domain Verification Findings**: The multi-agent verification protocol evaluated operational parameters:\n{reasons_text}",
+        "",
+        f"**3. Revenue Exposure**: Monthly unbilled deficit is estimated at **{stolen_kwh:.1f} kWh**, representing an estimated recurring loss of **PKR {loss_currency:,.2f}** per billing cycle.",
+        "",
+        f"**4. Field Directive**: Assigned protocol is **{req.action_recommendation}**. Field inspection crew should verify physical meter integrity, incoming terminal blocks, and check for hidden shunt bypasses."
+    ]
+
+    return {
+        "source": "utility_intelligence_engine",
+        "model": "rule_based_calibrated",
+        "summary": "\n".join(lines),
+    }
+

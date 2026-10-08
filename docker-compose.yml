@@ -55,6 +55,7 @@ services:
     depends_on:
       - api
     volumes:
+      - ./data:/app/data
       - ./experiments_results:/app/experiments_results
     environment:
       # Reach the API by its compose service name, NOT localhost.

@@ -121,3 +121,50 @@ def test_feeders_summary(client):
     data = response.json()
     assert "feeders" in data
     assert len(data["feeders"]) > 0
+
+
+def test_list_consumers_and_details(client):
+    res = client.get("/api/v1/consumers")
+    assert res.status_code == 200
+    data = res.json()
+    assert "consumers" in data
+    assert data["count"] > 0
+    first_id = data["consumers"][0]["consumer_id"]
+
+    res_detail = client.get(f"/api/v1/consumers/{first_id}")
+    assert res_detail.status_code == 200
+    detail_data = res_detail.json()
+    assert detail_data["consumer_id"] == first_id
+    assert "context" in detail_data
+
+
+def test_system_statistics(client):
+    res = client.get("/api/v1/statistics")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "healthy"
+    assert "total_monitored_consumers" in data
+    assert "total_tickets" in data
+
+
+def test_assistant_summarize(client):
+    payload = {
+        "consumer_id": "PK001",
+        "consumer_type": "residential",
+        "theft_probability": 0.92,
+        "risk_tier": "CRITICAL",
+        "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+        "reasons": ["Sustained severe consumption drop detected", "Broken meter seal override"],
+        "financial_impact": {
+            "drop_kwh_per_day": 43.6,
+            "estimated_monthly_stolen_kwh": 1308.0,
+            "estimated_monthly_loss_currency": 36624.0,
+        },
+    }
+    res = client.post("/api/v1/assistant/summarize", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "summary" in data
+    assert "CRITICAL" in data["summary"]
+    assert "source" in data
+
