@@ -231,9 +231,9 @@ This is the **core contribution** — the 4-channel stack is a real, measurable 
 | 1 | XGBoost (20 features) | 0.6824 | 0.6779 | 0.2699 | 0.2036 | 0.4004 | 0.8153 |
 | 2 | CNN+BiLSTM (1 channel) | 0.6835 | 0.6603 | 0.2456 | 0.1570 | 0.5638 | 0.7050 |
 | 3 | CNN+BiLSTM (4 channels) | **0.7453** | **0.7529** | **0.3160** | **0.2692** | 0.3826 | **0.8589** |
-| 4 | Multi-Agent Integration | — | — | — | — | — | — |
-| 5a | Pakistan Zero-Shot | — | — | — | — | — | Recall: 64.3% |
-| 5b | Pakistan Fine-Tuned (synthetic) | — | **1.0000** | — | **1.00** | **1.00** | **1.00** |
+| 4 | Multi-Agent Integration | Same as Stage 3 | Same as Stage 3 | Same as Stage 3 | Same as Stage 3 | Same as Stage 3 | Same as Stage 3 + FP suppression |
+| 5a | Pakistan Zero-Shot | N/A (no normals) | N/A (no normals) | N/A (no normals) | N/A (no normals) | **64.3% @0.65** | N/A (no normals) |
+| 5b | Pakistan Fine-Tuned (synthetic) | N/A (small val set) | **1.0000** | N/A (small val set) | **1.00** | **1.00** | **1.00** |
 
 ---
 

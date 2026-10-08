@@ -124,9 +124,9 @@ are quoted as our own.
 | 1 | XGBoost baseline (20 features) | 0.6824 | 0.6779 | 0.2699 | — |
 | 2 | CNN+BiLSTM, raw sequence (1 ch) | 0.6835 | 0.6603 | 0.2456 | +0.0011 AUC |
 | 3 | **Channel-Boosted (4 ch)** | **0.7453** | **0.7529** | **0.3160** | **+0.0618 AUC, +0.0704 F1** |
-| 4 | Integration report | regenerable | — | — | — |
-| 5a | Pakistan zero-shot transfer | recall 64.3% @0.65 | — | — | cross-domain |
-| 5b | **Pakistan fine-tuned (synthetic)** | — | **1.0000** | — | **1.00** | held-out test |
+| 4 | Multi-Agent Integration | Same as Stage 3 | Same as Stage 3 | Same as Stage 3 | + FP suppression |
+| 5a | Pakistan zero-shot transfer | N/A (no normals) | N/A (no normals) | N/A (no normals) | Recall: 64.3% @0.65 |
+| 5b | **Pakistan fine-tuned (synthetic)** | N/A (small val) | **1.0000** | **1.00** | held-out test: 67 rows, 6 theft |
 
 **Channel Boosting is a real, measurable improvement:** +6.2 percentage points AUC and
 +7 percentage points F1 over the raw sequence baseline.
