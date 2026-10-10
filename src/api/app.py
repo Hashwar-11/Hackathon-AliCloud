@@ -16,7 +16,8 @@ import numpy as np
 import yaml
 from fastapi import FastAPI, HTTPException, Query, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.agents.verification.verify import CustomerContext
@@ -353,8 +354,9 @@ def _score_single_internal(req: PredictRequest, threshold_override: Optional[flo
 # ---------------------------------------------------------------------------
 @app.get("/", include_in_schema=False)
 def root():
-    """Landing route so http://localhost:8000/ does NOT 404 -- it sends you to the
-    interactive API docs (Swagger UI) where every endpoint can be tried live."""
+    """Serve the enterprise control-room single-page app if present, else redirect to /docs."""
+    if os.path.exists("frontend/index.html"):
+        return FileResponse("frontend/index.html")
     return RedirectResponse(url="/docs")
 
 

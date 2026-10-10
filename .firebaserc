@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "etd-platform-pk",
+    "etd": "etd-platform-pk",
+    "research": "asifullah-khan-research",
+    "pieasmess": "pieasmess"
+  }
+}

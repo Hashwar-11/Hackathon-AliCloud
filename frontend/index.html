@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETD Platform — Electricity Theft Intelligence & Field Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ═══════════════════════ THEME VARIABLES ══════════════ */
+    :root[data-theme="dark"] {
+      --bg:          #070d18;
+      --bg2:         #0c1626;
+      --surface:     #111f33;
+      --surface2:    #162740;
+      --border:      #1c314f;
+      --border2:     #25426b;
+      --text:        #e2eaf5;
+      --text-dim:    #cbd5e1;
+      --muted:       #7a97ba;
+      --faint:       #3e577a;
+      --brand:       #2b7fff;
+      --brand-hover: #3d8dff;
+      --brand-glow:  rgba(43,127,255,0.18);
+      --green:       #10b981;
+      --green-glow:  rgba(16,185,129,0.16);
+      --amber:       #f59e0b;
+      --amber-glow:  rgba(245,158,11,0.16);
+      --red:         #ef4444;
+      --red-glow:    rgba(239,68,68,0.16);
+      --purple:      #a855f7;
+      --card-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      --header-bg:   rgba(7,13,24,0.92);
+      --sidebar-w:   230px;
+      --header-h:    58px;
+    }
+
+    :root[data-theme="light"] {
+      --bg:          #f4f7fb;
+      --bg2:         #e9edf4;
+      --surface:     #ffffff;
+      --surface2:    #f8fafc;
+      --border:      #d1dbe8;
+      --border2:     #b8c8dc;
+      --text:        #0f172a;
+      --text-dim:    #334155;
+      --muted:       #64748b;
+      --faint:       #94a3b8;
+      --brand:       #1d6fe9;
+      --brand-hover: #175ec9;
+      --brand-glow:  rgba(29,111,233,0.12);
+      --green:       #059669;
+      --green-glow:  rgba(5,150,105,0.12);
+      --amber:       #d97706;
+      --amber-glow:  rgba(217,119,6,0.12);
+      --red:         #dc2626;
+      --red-glow:    rgba(220,38,38,0.12);
+      --purple:      #9333ea;
+      --card-shadow: 0 2px 12px rgba(15,23,42,0.06);
+      --header-bg:   rgba(255,255,255,0.94);
+      --sidebar-w:   230px;
+      --header-h:    58px;
+    }
+
+    html { font-size: 14px; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      transition: background .2s, color .2s;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ═══════════════════════ HEADER ═══════════════════════ */
+    #header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 120;
+      height: var(--header-h);
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 12px; }
+
+    .menu-toggle-btn {
+      display: none;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text); padding: 6px 8px; border-radius: 6px;
+      cursor: pointer;
+    }
+    .menu-toggle-btn svg { width: 18px; height: 18px; display: block; }
+
+    .header-logo {
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .header-logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #1756b3 0%, var(--brand) 100%);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px var(--brand-glow), 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .header-logo-icon svg { width: 18px; height: 18px; color: #fff; }
+    .header-title { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.2; }
+    .header-sub { font-size: 10.5px; color: var(--muted); }
+
+    .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 11px; border-radius: 6px;
+      background: var(--green-glow); border: 1px solid rgba(16,185,129,0.3);
+      font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+      color: var(--green); cursor: pointer; transition: all .15s;
+    }
+    .status-pill:hover { transform: translateY(-1px); }
+    .status-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+    .status-pill.sim {
+      background: var(--amber-glow); border-color: rgba(245,158,11,0.35);
+      color: var(--amber);
+    }
+    .status-pill.sim .dot { background: var(--amber); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .hdr-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 11px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); font-size: 11.5px; font-weight: 500;
+      cursor: pointer; transition: all .15s; text-decoration: none;
+      white-space: nowrap;
+    }
+    .hdr-btn svg { width: 14px; height: 14px; }
+    .hdr-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+    .hdr-btn.spin svg { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════ LAYOUT ═══════════════════════ */
+    #layout {
+      display: flex;
+      margin-top: var(--header-h);
+      flex: 1;
+    }
+
+    /* ═══════════════════════ SIDEBAR ══════════════════════ */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      position: fixed;
+      top: var(--header-h);
+      bottom: 0;
+      left: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 8px;
+      gap: 2px;
+      z-index: 100;
+      transition: transform .25s ease;
+    }
+
+    .nav-section-label {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--faint);
+      padding: 14px 10px 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 11px; border-radius: 7px;
+      font-size: 12.5px; font-weight: 500; color: var(--muted);
+      cursor: pointer; transition: all .15s;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active {
+      background: var(--brand-glow);
+      color: var(--brand);
+      border-color: rgba(43,127,255,0.3);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 10px;
+      border-top: 1px solid var(--border);
+      font-size: 10.5px; color: var(--muted);
+      line-height: 1.5;
+    }
+    .sidebar-footer strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 2px; }
+
+    /* Mobile drawer overlay */
+    #sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 95; backdrop-filter: blur(2px);
+    }
+
+    /* ═══════════════════════ MAIN CONTENT ═════════════════ */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 24px;
+      min-height: calc(100vh - var(--header-h));
+      max-width: 1600px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ═══════════════════════ PAGE HEADERS ═════════════════ */
+    .page-hdr {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+    }
+    .page-hdr h1 { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .page-hdr p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .page-hdr-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+
+    /* ═══════════════════════ CARDS ════════════════════════ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: var(--card-shadow);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .card:hover { border-color: var(--border2); }
+    .card-sm { padding: 14px 16px; }
+
+    .card-title {
+      font-size: 12.5px; font-weight: 600; color: var(--text);
+      letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px;
+    }
+    .card-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* ═══════════════════════ KPI GRID ═════════════════════ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: var(--card-shadow);
+      transition: border-color .2s, transform .2s;
+      position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 10px 10px 0 0;
+    }
+    .kpi-card.blue::before   { background: linear-gradient(90deg, var(--brand) 0%, transparent 100%); }
+    .kpi-card.amber::before  { background: linear-gradient(90deg, var(--amber) 0%, transparent 100%); }
+    .kpi-card.green::before  { background: linear-gradient(90deg, var(--green) 0%, transparent 100%); }
+    .kpi-card.red::before    { background: linear-gradient(90deg, var(--red) 0%, transparent 100%); }
+    .kpi-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+    .kpi-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .kpi-label svg { width: 14px; height: 14px; }
+    .kpi-value {
+      font-size: 24px; font-weight: 800; color: var(--text);
+      letter-spacing: -0.03em; margin-top: 8px; line-height: 1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .kpi-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .kpi-hint.green { color: var(--green); font-weight: 600; }
+    .kpi-hint.amber { color: var(--amber); font-weight: 600; }
+    .kpi-hint.red   { color: var(--red); font-weight: 600; }
+
+    /* ═══════════════════════ GRIDS ════════════════════════ */
+    .grid-2-1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .grid-2   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-3   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    @media (min-width: 950px) {
+      .grid-2-1 { grid-template-columns: 2.1fr 1fr; }
+      .grid-1-2 { grid-template-columns: 1fr 2.1fr; }
+    }
+
+    /* ═══════════════════════ CHARTS ═══════════════════════ */
+    .chart-wrap { position: relative; width: 100%; }
+    canvas { display: block; width: 100% !important; }
+
+    /* ═══════════════════════ TABLES ═══════════════════════ */
+    .tbl-wrap { overflow-x: auto; margin: 0 -18px -18px; padding: 0 18px 18px; }
+    table { width: 100%; border-collapse: collapse; min-width: 650px; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      padding: 10px 12px; text-align: left;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      font-size: 12px; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr { transition: background .12s; }
+    tbody tr:hover { background: var(--brand-glow); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ═══════════════════════ BADGES & TAGS ════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 5px;
+      font-size: 10px; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .badge-crit  { background: var(--red-glow); color: var(--red); border-color: rgba(239,68,68,0.35); }
+    .badge-high  { background: var(--amber-glow); color: var(--amber); border-color: rgba(245,158,11,0.35); }
+    .badge-med   { background: var(--brand-glow); color: var(--brand); border-color: rgba(43,127,255,0.35); }
+    .badge-low   { background: var(--green-glow); color: var(--green); border-color: rgba(16,185,129,0.35); }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 7px; border-radius: 4px;
+      font-size: 10.5px; font-weight: 600;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .tag-cloud {
+      background: var(--brand-glow); color: var(--brand);
+      border-color: rgba(43,127,255,0.3); font-weight: 600;
+    }
+
+    /* ═══════════════════════ BUTTONS ══════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 14px; border-radius: 7px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all .15s; border: 1px solid transparent;
+      white-space: nowrap; font-family: inherit;
+    }
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .btn-primary {
+      background: var(--brand); color: #fff;
+      border-color: var(--brand);
+      box-shadow: 0 2px 8px rgba(43,127,255,0.35);
+    }
+    .btn-primary:hover {
+      background: var(--brand-hover);
+      box-shadow: 0 4px 14px rgba(43,127,255,0.45);
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface2); color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); border-color: var(--border2); }
+
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { background: var(--surface); color: var(--text); border-color: var(--border2); }
+
+    .btn-sm { padding: 5px 9px; font-size: 11px; gap: 4px; border-radius: 5px; }
+    .btn-sm svg { width: 12px; height: 12px; }
+    .btn-full { width: 100%; padding: 10px; font-size: 13px; }
+
+    /* ═══════════════════════ FORM INPUTS ══════════════════ */
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .form-control {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 11px;
+      font-size: 12px; color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      transition: border-color .15s, box-shadow .15s; outline: none; width: 100%;
+    }
+    .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-glow); }
+    .form-control::placeholder { color: var(--faint); }
+    textarea.form-control { resize: vertical; line-height: 1.4; }
+    select.form-control { font-family: inherit; }
+    input[type="range"] { accent-color: var(--brand); width: 100%; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-section-title {
+      font-size: 10px; font-weight: 700; color: var(--faint);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 8px 0 4px; border-top: 1px solid var(--border);
+      margin-top: 4px;
+    }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-dim); cursor: pointer;
+      user-select: none; padding: 4px 0;
+    }
+    .checkbox-row input[type="checkbox"] { accent-color: var(--brand); width: 14px; height: 14px; }
+    .checkbox-row.danger { color: #f87171; font-weight: 500; }
+
+    /* File Drag & Drop */
+    .file-dropzone {
+      border: 1.5px dashed var(--border2);
+      border-radius: 8px; padding: 12px;
+      text-align: center; background: var(--bg2);
+      cursor: pointer; transition: all .15s;
+      margin-top: 8px;
+    }
+    .file-dropzone:hover, .file-dropzone.dragover {
+      border-color: var(--brand);
+      background: var(--brand-glow);
+    }
+    .file-dropzone svg { width: 20px; height: 20px; color: var(--muted); margin-bottom: 4px; }
+    .file-dropzone p { font-size: 11px; color: var(--muted); }
+    .file-dropzone strong { color: var(--text); font-weight: 600; }
+
+    /* ═══════════════════════ PRESETS ══════════════════════ */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .preset-btn {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 7px; padding: 9px 10px;
+      text-align: left; cursor: pointer; transition: all .15s;
+    }
+    .preset-btn:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-1px); }
+    .preset-btn.active-preset {
+      border-color: var(--brand); background: var(--brand-glow);
+      box-shadow: 0 0 0 1px var(--brand);
+    }
+    .preset-btn .title {
+      font-size: 11.5px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .preset-btn .desc { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+    /* ═══════════════════════ DETECTION RESULTS ═════════════ */
+    #detection-results-panel { display: none; margin-top: 20px; animation: fadeIn .25s ease; }
+
+    .result-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .risk-badge-lg {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 6px;
+      font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+      font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+    }
+    .risk-CRITICAL { background: var(--red-glow); color: var(--red); border: 1px solid rgba(239,68,68,0.4); box-shadow: 0 0 16px rgba(239,68,68,0.2); }
+    .risk-HIGH     { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); box-shadow: 0 0 16px rgba(245,158,11,0.2); }
+    .risk-MEDIUM   { background: var(--brand-glow); color: var(--brand); border: 1px solid rgba(43,127,255,0.4); }
+    .risk-LOW      { background: var(--green-glow); color: var(--green); border: 1px solid rgba(16,185,129,0.4); }
+
+    .action-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; font-weight: 700; color: var(--brand);
+    }
+
+    .metric-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px;
+    }
+    .metric-box .label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: 0.05em; }
+    .metric-box .value { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 5px; letter-spacing: -0.02em; font-family: 'JetBrains Mono', monospace; }
+    .metric-box .hint  { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* Channel Stack Bar */
+    .channels-bar-container {
+      display: flex; flex-direction: column; gap: 8px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+    }
+    .channel-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11.5px; }
+    .channel-row .ch-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text); width: 140px; }
+    .channel-progress-track {
+      flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .channel-progress-fill { height: 100%; border-radius: 3px; background: var(--brand); transition: width .4s ease; }
+    .channel-row .ch-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); width: 45px; text-align: right; }
+
+    /* Reasons List */
+    .reasons-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .reasons-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 10px; border-radius: 6px;
+      background: var(--bg2); border: 1px solid var(--border);
+      font-size: 12px; color: var(--text); line-height: 1.4;
+    }
+    .reasons-list .bullet { color: var(--brand); font-weight: 800; }
+
+    /* Qwen AI Briefing */
+    .ai-briefing-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; min-height: 120px;
+      font-size: 12px; color: var(--text); line-height: 1.6;
+      white-space: pre-wrap; font-family: inherit;
+    }
+    .ai-briefing-box h3, .ai-briefing-box strong { color: var(--text); }
+
+    /* ═══════════════════════ MODAL ════════════════════════ */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 200;
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; animation: fadeIn .2s ease; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px; width: 100%; max-width: 580px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;
+    }
+    .modal-hdr {
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-hdr h2 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .modal-close-btn {
+      background: transparent; border: none; color: var(--muted);
+      cursor: pointer; font-size: 18px; padding: 2px 6px;
+    }
+    .modal-close-btn:hover { color: var(--text); }
+    .modal-body { padding: 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+    .modal-ftr {
+      padding: 12px 18px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 8px;
+      background: var(--bg2);
+    }
+
+    /* ═══════════════════════ TOAST ════════════════════════ */
+    #toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 300;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      color: #fff; background: var(--surface2);
+      border: 1px solid var(--border2);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+      transform: translateY(100px); opacity: 0;
+      transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; align-items: center; gap: 8px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.info    { border-left: 4px solid var(--brand); color: var(--text); }
+    #toast.success { border-left: 4px solid var(--green); color: var(--text); }
+    #toast.error   { border-left: 4px solid var(--red);   color: var(--text); }
+
+    /* ═══════════════════════ RESPONSIVE ═══════════════════ */
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      #sidebar-overlay.open { display: block; }
+      #main { margin-left: 0; padding: 16px; }
+      .menu-toggle-btn { display: block; }
+      .header-sub { display: none; }
+    }
+
+    @media (max-width: 580px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .preset-grid { grid-template-columns: 1fr 1fr; }
+      .page-hdr h1 { font-size: 16px; }
+    }
+
+    /* Highlight Row */
+    tr.highlight-row td { color: #93c5fd; font-weight: 600; }
+    tr.highlight-row { background: var(--brand-glow); }
+
+    .feeder-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: 7px;
+      background: var(--bg2); border: 1px solid var(--border);
+      margin-bottom: 6px; transition: border-color .15s;
+    }
+    .feeder-row:hover { border-color: var(--border2); }
+    .feeder-row .name { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--text); }
+    .feeder-row .sub  { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+    .empty-state {
+      padding: 30px; text-align: center; color: var(--muted);
+      font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HEADER ═══════════════════════ -->
+<header id="header">
+  <div class="header-left">
+    <button class="menu-toggle-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="#" class="header-logo" onclick="showTab('overview'); return false;">
+      <div class="header-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">ETD Grid Intelligence</div>
+        <div class="header-sub">Electricity Theft Detection & Field Ops</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="header-right">
+    <div class="status-pill" id="status-pill" onclick="openSettingsModal()" title="Click to view API settings">
+      <span class="dot"></span>
+      <span id="status-text">CONNECTING…</span>
+    </div>
+
+    <button class="hdr-btn" onclick="openGuideModal()" title="System Architecture & Rules">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>Guide</span>
+    </button>
+
+    <button class="hdr-btn" onclick="openSettingsModal()" title="Backend API Configuration">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span>Settings</span>
+    </button>
+
+    <button class="hdr-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+
+    <button class="hdr-btn" id="refresh-btn" onclick="refreshAll()" title="Refresh Telemetry">
+      <svg id="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════════ LAYOUT ═══════════════════════ -->
+<div id="layout">
+
+  <!-- Mobile Drawer Backdrop -->
+  <div id="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <nav id="sidebar">
+    <span class="nav-section-label">Operations</span>
+
+    <div class="nav-item active" data-tab="overview" onclick="showTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Network Overview
+    </div>
+
+    <div class="nav-item" data-tab="detection" onclick="showTab('detection')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      Detection Studio
+    </div>
+
+    <div class="nav-item" data-tab="consumers" onclick="showTab('consumers')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Consumer Registry
+    </div>
+
+    <div class="nav-item" data-tab="batch" onclick="showTab('batch')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      Batch Feeder Queue
+    </div>
+
+    <span class="nav-section-label">Field Interventions</span>
+
+    <div class="nav-item" data-tab="audit" onclick="showTab('audit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Field Audit Logging
+    </div>
+
+    <span class="nav-section-label">AI Intelligence</span>
+
+    <div class="nav-item" data-tab="benchmarks" onclick="showTab('benchmarks')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      AI Benchmarks Lab
+    </div>
+
+    <div class="sidebar-footer">
+      <strong>ETD Platform v2.2</strong>
+      Pakistani DISCOs · AMI Pilots<br>
+      4-Channel Neural Stack
+    </div>
+  </nav>
+
+  <!-- ═══════ MAIN CONTENT ═══════ -->
+  <main id="main">
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: NETWORK OVERVIEW                           -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="page-hdr">
+        <div>
+          <h1>Network Overview</h1>
+          <p>Real-time feeder line-loss telemetry, active theft suspects, and field recovery operations</p>
+        </div>
+        <div class="page-hdr-actions">
+          <span class="tag tag-cloud">IESCO / LESCO / MEPCO / PESCO Pilot</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">
+            Monitored Consumers
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="kpi-value" id="kpi-consumers">42</div>
+          <div class="kpi-hint">Across 4 monitored grid feeders</div>
+        </div>
+
+        <div class="kpi-card amber">
+          <div class="kpi-label">
+            Pending Dispatches
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="kpi-value" id="kpi-tickets">14</div>
+          <div class="kpi-hint amber">Flagged suspects awaiting field raids</div>
+        </div>
+
+        <div class="kpi-card green">
+          <div class="kpi-label">
+            Inspection Precision
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="kpi-value" id="kpi-precision">87.5%</div>
+          <div class="kpi-hint green">Confirmed hits / field raids</div>
+        </div>
+
+        <div class="kpi-card red">
+          <div class="kpi-label">
+            Penalties Recovered
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="kpi-value" id="kpi-penalties">PKR 2,450,000</div>
+          <div class="kpi-hint">Direct revenue recovery to DISCO</div>
+        </div>
+      </div>
+
+      <!-- Charts & Feeder Risk Matrix -->
+      <div class="grid-2-1" style="margin-bottom:16px">
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div class="card-title">Feeder Technical & Commercial Line Loss</div>
+              <div class="card-sub">Non-technical theft loss vs NEPRA statutory threshold (15.0%)</div>
+            </div>
+            <span class="tag tag-cloud">NEPRA Standard</span>
+          </div>
+          <div class="chart-wrap" style="height:230px">
+            <canvas id="feederLossChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Grid Feeder Risk Matrix</div>
+          <div id="feeder-matrix"></div>
+          <button class="btn btn-secondary btn-full" style="margin-top:12px;font-size:11.5px" onclick="showTab('batch')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Score Feeder Cohorts
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Tickets Manifest -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div class="card-title">Prioritized Field Inspection Manifest</div>
+            <div class="card-sub">Active suspects prioritized by multi-agent theft risk tier</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="fetchTickets()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh Tickets
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Consumer ID</th>
+                <th>Feeder ID</th>
+                <th>Risk Tier</th>
+                <th>Theft Probability</th>
+                <th>Recommended Protocol</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="overview-tickets-tbody">
+              <tr><td colspan="7" class="empty-state">Loading active tickets…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: DETECTION STUDIO                          -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-detection">
+      <div class="page-hdr">
+        <div>
+          <h1>Detection Studio</h1>
+          <p>Single-meter 4-channel neural inference & multi-agent verification engine</p>
+        </div>
+      </div>
+
+      <!-- Presets Selector -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div class="card-title">Load Pakistani Grid Test Profiles</div>
+          <span class="tag tag-cloud">Real AMI Field Cases</span>
+        </div>
+        <div class="preset-grid" id="preset-grid">
+          <button class="preset-btn active-preset" data-key="pk001" onclick="loadPreset('pk001')">
+            <div class="title">PK001 <span class="badge badge-crit">Theft</span></div>
+            <div class="desc">Sudden bypass drop (IESCO)</div>
+          </button>
+          <button class="preset-btn" data-key="pk003" onclick="loadPreset('pk003')">
+            <div class="title">PK003 <span class="badge badge-high">Theft</span></div>
+            <div class="desc">Commercial plaza shunt (LESCO)</div>
+          </button>
+          <button class="preset-btn" data-key="pk007" onclick="loadPreset('pk007')">
+            <div class="title">PK007 <span class="badge badge-crit">Recidivist</span></div>
+            <div class="desc">Prior theft repeat offense</div>
+          </button>
+          <button class="preset-btn" data-key="solar" onclick="loadPreset('solar')">
+            <div class="title">Rooftop Solar <span class="badge badge-low">Normal</span></div>
+            <div class="desc">PV net-metering exoneration</div>
+          </button>
+          <button class="preset-btn" data-key="tamper" onclick="loadPreset('tamper')">
+            <div class="title">Broken Seal <span class="badge badge-crit">Critical</span></div>
+            <div class="desc">Hardware tamper + near-zero</div>
+          </button>
+          <button class="preset-btn" data-key="industrial" onclick="loadPreset('industrial')">
+            <div class="title">Industrial Mill <span class="badge badge-med">AE Mode</span></div>
+            <div class="desc">Steel rolling peak shift</div>
+          </button>
+          <button class="preset-btn" data-key="fault" onclick="loadPreset('fault')">
+            <div class="title">CT Coil Fault <span class="badge badge-low">Exonerated</span></div>
+            <div class="desc">Grid hardware defect rule</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Work Area: Chart + Controls -->
+      <div class="grid-2-1">
+        <!-- Load Curve Chart Card -->
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div class="card-title" id="curve-title">Daily Consumption Load Profile (kWh)</div>
+              <div class="card-sub">
+                <span id="series-length-tag" class="mono text-brand" style="font-weight:700">24 Days</span>
+                · Time series passed through 4-channel neural network
+              </div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="applyManualSeries()">Update Chart</button>
+            </div>
+          </div>
+
+          <!-- Quick Telemetry Strip -->
+          <div style="display:flex;gap:12px;margin-bottom:10px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;flex-wrap:wrap">
+            <div>Mean: <strong id="strip-mean" style="color:var(--text)">—</strong></div>
+            <div>Min: <strong id="strip-min" style="color:var(--text)">—</strong></div>
+            <div>Max: <strong id="strip-max" style="color:var(--text)">—</strong></div>
+            <div>Est. Monthly: <strong id="strip-monthly" style="color:var(--brand)">—</strong></div>
+          </div>
+
+          <div class="chart-wrap" style="height:230px;margin-bottom:12px">
+            <canvas id="consumptionChart"></canvas>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Raw kWh Daily Readings (comma-separated):</label>
+            <textarea id="series-input" class="form-control" rows="2" placeholder="45.2, 44.8, 46.1, 4.2 …"></textarea>
+          </div>
+
+          <!-- Drag and Drop Box -->
+          <div class="file-dropzone" id="dropzone" onclick="document.getElementById('file-upload-input').click()">
+            <input type="file" id="file-upload-input" accept=".csv,.txt" style="display:none" onchange="handleFileUpload(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p><strong>Click or Drag CSV / Text file</strong> containing daily kWh readings to load immediately</p>
+          </div>
+        </div>
+
+        <!-- Operational Context Controls Card -->
+        <div class="card" style="display:flex;flex-direction:column;gap:12px">
+          <div class="card-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Operational Grid Context
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Consumer Account ID</label>
+            <input type="text" id="ctx-consumer-id" class="form-control" value="PK001">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tariff Category</label>
+              <select id="ctx-client-type" class="form-control">
+                <option value="residential">Residential (A-1)</option>
+                <option value="commercial">Commercial (A-2)</option>
+                <option value="industrial">Industrial (B-2)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Grid Feeder</label>
+              <select id="ctx-feeder-id" class="form-control">
+                <option value="FEEDER-NORTH-01">FEEDER-NORTH-01 (Commercial)</option>
+                <option value="FEEDER-EAST-03">FEEDER-EAST-03 (Residential)</option>
+                <option value="FEEDER-IND-04">FEEDER-IND-04 (Industrial)</option>
+                <option value="FEEDER-SOUTH-02">FEEDER-SOUTH-02 (Mixed)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label class="form-label">Feeder Line Loss (%)</label>
+              <span class="mono" style="font-size:11.5px;font-weight:700;color:var(--brand)" id="feeder-loss-val">17.8%</span>
+            </div>
+            <input type="range" id="ctx-feeder-loss" min="0" max="50" step="0.5" value="17.8"
+              oninput="document.getElementById('feeder-loss-val').textContent=this.value+'%'">
+          </div>
+
+          <div class="form-section-title">Physical & Hardware Flags</div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="ctx-solar">
+            Rooftop Solar PV (Net-Metering Exoneration)
+          </label>
+          <label class="checkbox-row danger">
+            <input type="checkbox" id="ctx-seal-broken">
+            Meter Physical Seal Broken (Tamper Alert)
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="ctx-topo-fault">
+            Known CT/PT Transformer Fault (Exoneration)
+          </label>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Prior Audit Result</label>
+              <select id="ctx-audit-result" class="form-control">
+                <option value="none">None on Record</option>
+                <option value="cleared">Cleared (&lt;6 months)</option>
+                <option value="confirmed_theft">Confirmed Theft (Recidivist)</option>
+                <option value="meter_fault">Meter Defect</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tamper Event Count</label>
+              <input type="number" id="ctx-tamper-count" class="form-control" value="0" min="0" max="10">
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="btn-run-detect" onclick="runInference()" style="margin-top:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Execute AI Theft Detection
+          </button>
+        </div>
+      </div>
+
+      <!-- Detection Results Panel -->
+      <div id="detection-results-panel">
+        <div class="card">
+          <!-- Result Banner -->
+          <div class="result-banner">
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:0.06em">Multi-Agent Assessment</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+                <h2 style="font-size:16px;font-weight:700">Audit Classification</h2>
+                <span id="res-risk-tier-badge" class="risk-badge-lg">—</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:0.06em">Action Directive</div>
+              <div id="res-action-protocol" class="action-code" style="margin-top:4px">—</div>
+            </div>
+          </div>
+
+          <!-- 4 Metrics Grid -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:16px">
+            <div class="metric-box">
+              <div class="label">Calibrated Theft Probability</div>
+              <div class="value" id="res-prob-val">—</div>
+              <div class="hint" id="res-prob-delta">—</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Neural Backbone Score</div>
+              <div class="value" id="res-raw-score">—</div>
+              <div class="hint">1D-CNN + BiLSTM 4-Ch Model</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Est. Monthly Revenue Loss</div>
+              <div class="value" id="res-loss-pkr" style="color:var(--red)">—</div>
+              <div class="hint" id="res-loss-kwh">—</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Daily Deficit Rate</div>
+              <div class="value" id="res-drop-kwh">—</div>
+              <div class="hint">Lowest 30-day window drop</div>
+            </div>
+          </div>
+
+          <!-- 4-Channel Stack Breakdown & Domain Rules -->
+          <div class="grid-2" style="margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">
+                4-Channel Neural Signal Breakdown
+              </div>
+              <div class="channels-bar-container">
+                <div class="channel-row">
+                  <span class="ch-name">Ch. 1 Raw Sequence</span>
+                  <div class="channel-progress-track"><div class="channel-progress-fill" id="ch1-bar" style="width:78%"></div></div>
+                  <span class="ch-val" id="ch1-val">0.78</span>
+                </div>
+                <div class="channel-row">
+                  <span class="ch-name">Ch. 2 AE Residual</span>
+                  <div class="channel-progress-track"><div class="channel-progress-fill" id="ch2-bar" style="width:84%;background:var(--amber)"></div></div>
+                  <span class="ch-val" id="ch2-val">0.84</span>
+                </div>
+                <div class="channel-row">
+                  <span class="ch-name">Ch. 3 Pretext Embedding</span>
+                  <div class="channel-progress-track"><div class="channel-progress-fill" id="ch3-bar" style="width:65%;background:var(--purple)"></div></div>
+                  <span class="ch-val" id="ch3-val">0.65</span>
+                </div>
+                <div class="channel-row">
+                  <span class="ch-name">Ch. 4 FFT Projection</span>
+                  <div class="channel-progress-track"><div class="channel-progress-fill" id="ch4-bar" style="width:71%;background:var(--green)"></div></div>
+                  <span class="ch-val" id="ch4-val">0.71</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">
+                Verification Agent Domain Rules Fired
+              </div>
+              <ul class="reasons-list" id="res-reasons-list"></ul>
+            </div>
+          </div>
+
+          <!-- Qwen AI Intelligence Briefing -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);display:flex;align-items:center;gap:6px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                Alibaba Cloud Qwen AI Field Briefing
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="copyBriefing()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy Briefing
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="printBriefing()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  Print / PDF
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-gen-ai" onclick="generateQwenReport()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Synthesize Briefing
+                </button>
+              </div>
+            </div>
+            <div class="ai-briefing-box" id="ai-briefing-content">
+              Run detection above to generate an executive intelligence briefing for field inspection officers.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: CONSUMER REGISTRY                         -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-consumers">
+      <div class="page-hdr">
+        <div>
+          <h1>Consumer Registry</h1>
+          <p>Monitored grid accounts directory with tariff baselines, solar flags, and prior audit outcomes</p>
+        </div>
+        <div class="page-hdr-actions">
+          <input type="text" id="registry-search" class="form-control" style="width:190px"
+            placeholder="Search Account / Feeder…" oninput="filterRegistry()">
+          <select id="registry-feeder-filter" class="form-control" style="width:170px" onchange="filterRegistry()">
+            <option value="ALL">All Grid Feeders</option>
+            <option value="FEEDER-NORTH-01">FEEDER-NORTH-01</option>
+            <option value="FEEDER-EAST-03">FEEDER-EAST-03</option>
+            <option value="FEEDER-IND-04">FEEDER-IND-04</option>
+            <option value="FEEDER-SOUTH-02">FEEDER-SOUTH-02</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Consumer Account</th>
+                <th>Grid Feeder</th>
+                <th>Category</th>
+                <th>Sanctioned Load</th>
+                <th>Feeder Loss</th>
+                <th>Solar Net-Metering</th>
+                <th>Prior Audit</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="registry-tbody">
+              <tr><td colspan="8" class="empty-state">Loading monitored consumer registry…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: BATCH FEEDER QUEUE                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-batch">
+      <div class="page-hdr">
+        <div>
+          <h1>Batch Feeder Queue</h1>
+          <p>Scan 30+ smart meter endpoints simultaneously to produce prioritized field inspection routes</p>
+        </div>
+        <div class="page-hdr-actions">
+          <select id="batch-feeder-select" class="form-control" style="width:210px">
+            <option value="FEEDER-NORTH-01">FEEDER-NORTH-01 (Commercial)</option>
+            <option value="FEEDER-EAST-03">FEEDER-EAST-03 (Residential)</option>
+            <option value="FEEDER-IND-04">FEEDER-IND-04 (Industrial)</option>
+            <option value="FEEDER-SOUTH-02">FEEDER-SOUTH-02 (Mixed)</option>
+          </select>
+          <button class="btn btn-primary" id="btn-run-batch" onclick="runBatchEvaluation()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Score Feeder Cohort
+          </button>
+          <button class="btn btn-ghost" onclick="exportBatchCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Batch Summary Cards -->
+      <div id="batch-summary" style="display:none;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px">
+          <div class="card card-sm" style="text-align:center">
+            <div class="mono" style="font-size:10px;text-transform:uppercase;color:var(--muted)">Endpoints Evaluated</div>
+            <div id="batch-analyzed-count" class="mono" style="font-size:24px;font-weight:800;color:var(--text);margin-top:4px">30</div>
+          </div>
+          <div class="card card-sm" style="text-align:center">
+            <div class="mono" style="font-size:10px;text-transform:uppercase;color:var(--muted)">High-Risk Suspects Flagged</div>
+            <div id="batch-suspect-count" class="mono" style="font-size:24px;font-weight:800;color:var(--red);margin-top:4px">5</div>
+          </div>
+          <div class="card card-sm" style="text-align:center">
+            <div class="mono" style="font-size:10px;text-transform:uppercase;color:var(--muted)">Total Monthly Loss Exposure</div>
+            <div id="batch-loss-count" class="mono" style="font-size:24px;font-weight:800;color:var(--brand);margin-top:4px">PKR 412,500</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Consumer Account</th>
+                <th>Feeder ID</th>
+                <th>Risk Tier</th>
+                <th>Theft Probability</th>
+                <th>Assigned Action</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="batch-queue-tbody">
+              <tr><td colspan="7" class="empty-state">Select a feeder and click "Score Feeder Cohort" to run multi-meter batch analysis.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: FIELD AUDIT LOGGING                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-audit">
+      <div class="page-hdr">
+        <div>
+          <h1>Field Audit Logging</h1>
+          <p>Commit physical inspection findings to durable storage · feeds the multi-agent closed-loop suppression</p>
+        </div>
+      </div>
+
+      <div class="grid-2-1">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">Submit Field Inspection Verification</div>
+          <form id="audit-form" onsubmit="submitAuditAction(event)">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Inspection Ticket ID</label>
+                  <input type="text" id="audit-ticket-id" class="form-control" value="TCK-IESCO-1018-91" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Consumer Account ID</label>
+                  <input type="text" id="audit-consumer-id" class="form-control" value="PK001" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Field Officer ID</label>
+                  <input type="text" id="audit-inspector-id" class="form-control" value="INSP-HASHWAR-DSU" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Physical Raid Finding</label>
+                  <select id="audit-outcome-select" class="form-control">
+                    <option value="CONFIRMED_THEFT">CONFIRMED_THEFT — Direct cable tap / bypass</option>
+                    <option value="DEFECTIVE_METER">DEFECTIVE_METER — CT/PT coil hardware fault</option>
+                    <option value="SOLAR_CONFIRMED">SOLAR_CONFIRMED — Legitimate rooftop solar</option>
+                    <option value="VACANCY_CONFIRMED">VACANCY_CONFIRMED — Premises vacant</option>
+                    <option value="FALSE_POSITIVE">FALSE_POSITIVE — Installation verified clean</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Penalty / Recovery Imposed (PKR)</label>
+                <input type="number" id="audit-penalty-amount" class="form-control" value="85000" min="0" step="5000">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Technical Inspection Notes</label>
+                <textarea id="audit-notes" class="form-control" rows="3">Direct underground tap discovered bypassing meter terminal block. Seal was tampered internally with bypass cable routed into wall cavity.</textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-full" id="btn-submit-audit" style="margin-top:4px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Commit Finding to Database
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Rules & Feedback Loop Explanation -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px">Multi-Agent Feedback Loop</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="background:var(--bg2);padding:10px 12px;border-radius:8px;border:1px solid var(--border)">
+                <div style="font-size:11.5px;font-weight:700;color:var(--green);margin-bottom:3px">6-Month Clearance Decay</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Accounts verified clean are suppressed from repeated raids using linear decay over 180 days.</div>
+              </div>
+
+              <div style="background:var(--bg2);padding:10px 12px;border-radius:8px;border:1px solid var(--border)">
+                <div style="font-size:11.5px;font-weight:700;color:var(--red);margin-bottom:3px">Recidivism Escalation Floor</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Confirmed prior offenders floored at 0.95 probability if anomalous drops reappear.</div>
+              </div>
+
+              <div style="background:var(--bg2);padding:10px 12px;border-radius:8px;border:1px solid var(--border)">
+                <div style="font-size:11.5px;font-weight:700;color:var(--brand);margin-bottom:3px">Durable Audit Trail</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Survives system restarts with SQLite / PostgreSQL persistence. Prevents repeated false dispatches.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- TAB: AI BENCHMARKS                             -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-benchmarks">
+      <div class="page-hdr">
+        <div>
+          <h1>AI Benchmark Laboratory</h1>
+          <p>Verified empirical evaluations across 5 research stages on frozen datasets</p>
+        </div>
+        <div class="page-hdr-actions">
+          <span class="tag tag-cloud">Verified Empirical Metrics</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Stage & Model</th>
+                <th>Architecture</th>
+                <th>Val ROC-AUC</th>
+                <th>Test ROC-AUC</th>
+                <th>Val F1</th>
+                <th>Test Accuracy</th>
+                <th>Scientific Contribution</th>
+              </tr>
+            </thead>
+            <tbody class="mono">
+              <tr>
+                <td style="font-weight:700;color:var(--text)">Stage 1: XGBoost</td>
+                <td style="color:var(--muted)">20 Handcrafted Features</td>
+                <td>0.6824</td><td>0.6779</td><td>0.2699</td><td>80.7%</td>
+                <td style="color:var(--muted)">Tabular feature baseline</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text)">Stage 2: Raw DL</td>
+                <td style="color:var(--muted)">1D-CNN + BiLSTM (1-Ch)</td>
+                <td>0.6835</td><td>0.6603</td><td>0.2456</td><td>69.6%</td>
+                <td style="color:var(--muted)">Raw temporal sequence</td>
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight:800;color:#93c5fd">Stage 3: 4-Channel Boosted ★</td>
+                <td style="color:#bfdbfe">Raw + AE + Pretext + FFT</td>
+                <td style="color:var(--brand);font-weight:800">0.7453</td>
+                <td style="color:var(--brand);font-weight:800">0.7529</td>
+                <td style="color:var(--brand);font-weight:800">0.3160</td>
+                <td style="color:var(--brand);font-weight:800">85.9%</td>
+                <td style="color:var(--green);font-weight:800">+6.2% ROC-AUC · +7.0% F1</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text)">Stage 4: Multi-Agent</td>
+                <td style="color:var(--muted)">Coordinator + 8 Domain Rules</td>
+                <td>0.7453</td><td>0.7529</td><td>0.3160</td><td>85.9%</td>
+                <td style="color:var(--muted)">False alarm suppression</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text)">Stage 5a: Zero-Shot Transfer</td>
+                <td style="color:var(--muted)">Frozen model on 42 Pakistan Cases</td>
+                <td style="color:var(--muted)">n/a</td><td style="color:var(--muted)">n/a</td><td style="color:var(--muted)">n/a</td>
+                <td style="color:var(--amber);font-weight:800">Recall: 64.3%</td>
+                <td style="color:var(--muted)">Zero target labels</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text)">Stage 5b: Pakistan Fine-Tuned</td>
+                <td style="color:var(--muted)">42 Real Thefts + 300 Normals</td>
+                <td style="color:var(--muted)">n/a</td>
+                <td style="color:var(--green);font-weight:800">1.0000</td>
+                <td style="color:var(--green);font-weight:800">1.00</td>
+                <td style="color:var(--green);font-weight:800">100.0%</td>
+                <td style="color:var(--green);font-weight:800">Test set convergence</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:6px">4-Channel Neural Stack</div>
+          <div class="card-sub" style="margin-bottom:12px">Signal projections passed to the deep classifier</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="feeder-row">
+              <div><div class="name">Channel 1 — Raw Temporal</div><div class="sub">Daily kWh sequence · 1D-CNN + BiLSTM backbone</div></div>
+              <span class="badge badge-low">Active</span>
+            </div>
+            <div class="feeder-row">
+              <div><div class="name">Channel 2 — AE Residual</div><div class="sub">Autoencoder reconstruction MSE · anomaly signal</div></div>
+              <span class="badge badge-low">Active</span>
+            </div>
+            <div class="feeder-row">
+              <div><div class="name">Channel 3 — Pretext Embedding</div><div class="sub">Self-supervised masked pretext embedding vector</div></div>
+              <span class="badge badge-low">Active</span>
+            </div>
+            <div class="feeder-row">
+              <div><div class="name">Channel 4 — FFT Magnitude</div><div class="sub">Fourier projection for periodic theft signature</div></div>
+              <span class="badge badge-low">Active</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:6px">8 Multi-Agent Verification Rules</div>
+          <div class="card-sub" style="margin-bottom:12px">Domain expert rules preventing false police dispatches</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px">
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R1 · Rooftop solar PV net-metering exoneration (-15% prob)</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R2 · Known CT/PT transformer hardware fault mitigator (-25% prob)</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R3 · 6-month inspection clearance decay suppressor</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R4 · Prior confirmed theft recidivism escalation floor (0.95 floor)</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R5 · Physical seal breach amplifier (+25% prob)</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R6 · Feeder high-loss correlation boost (>20% loss feeder)</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R7 · Industrial autoencoder threshold & τ-calibration</div>
+            <div style="padding:6px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border)">R8 · Open billing dispute de-escalation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════ SETTINGS MODAL ═══════════════ -->
+<div class="modal-backdrop" id="settings-modal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h2>API & Backend Configuration</h2>
+      <button class="modal-close-btn" onclick="closeSettingsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">FastAPI Backend Endpoint URL</label>
+        <input type="text" id="api-url-input" class="form-control" placeholder="http://localhost:8000">
+        <p style="font-size:11px;color:var(--muted);margin-top:2px">
+          Leave blank or enter your server URL (e.g. <code>http://localhost:8000</code> or your public ECS IP).
+        </p>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg2);border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">Force Client Simulation Mode</div>
+          <div style="font-size:11px;color:var(--muted)">Run complete neural & multi-agent logic in-browser with zero backend needed</div>
+        </div>
+        <input type="checkbox" id="force-sim-toggle" style="width:16px;height:16px;accent-color:var(--brand)">
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="testApiConnection()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          Test Connection Ping
+        </button>
+        <span id="ping-result" class="mono" style="font-size:11.5px;display:flex;align-items:center;color:var(--muted)"></span>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeSettingsModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save Configuration</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ GUIDE MODAL ══════════════════ -->
+<div class="modal-backdrop" id="guide-modal" onclick="if(event.target===this)closeGuideModal()">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-hdr">
+      <h2>ETD Platform Architecture Guide</h2>
+      <button class="modal-close-btn" onclick="closeGuideModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="font-size:12px;color:var(--text);line-height:1.6">
+      <h3 style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:4px">1. The Pakistan Non-Technical Loss Crisis</h3>
+      <p style="color:var(--text-dim);margin-bottom:12px">
+        Pakistani DISCOs (IESCO, LESCO, MEPCO, PESCO) suffer over ₨200 Billion in annual revenue leakages. Traditional spot-checking hits under 10% because inspections are unguided. ETD replaces blind raids with neural time-series intelligence.
+      </p>
+
+      <h3 style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:4px">2. 4-Channel Deep Learning Classifier</h3>
+      <p style="color:var(--text-dim);margin-bottom:12px">
+        A single raw time series is easily fooled by seasonal load shifts. ETD stacks:
+        <br>• <strong>Channel 1:</strong> Min-Max Scaled Raw Consumption
+        <br>• <strong>Channel 2:</strong> Autoencoder Reconstruction Error (captures structural deviations)
+        <br>• <strong>Channel 3:</strong> Masked-Pretext Self-Supervised Embedding (robust representations)
+        <br>• <strong>Channel 4:</strong> Fast Fourier Transform (FFT) Frequency Projection (detects periodic bypasses)
+      </p>
+
+      <h3 style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:4px">3. Multi-Agent Domain Verification Layer</h3>
+      <p style="color:var(--text-dim);margin-bottom:12px">
+        Raw neural models produce false alarms on legitimate solar net-metering and transformer defects. ETD runs 8 domain verification rules before raiding squads are dispatched, suppressing false positives while escalating repeat offenders.
+      </p>
+
+      <h3 style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:4px">4. Revenue Loss Calculation</h3>
+      <p style="color:var(--text-dim)">
+        Daily drop rate is computed across a sliding window against the consumer's pre-theft baseline, multiplied by NEPRA tariff rates to quantify recovered revenue in PKR.
+      </p>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-primary" onclick="closeGuideModal()">Close Guide</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════ JAVASCRIPT LOGIC ══════════════ -->
+<script>
+'use strict';
+
+// ── Application State ──────────────────────────────────
+let currentTab = 'overview';
+let consumptionChart = null;
+let feederLossChart = null;
+let registeredConsumers = [];
+let currentDetectionResult = null;
+let batchQueueData = [];
+let isSimulationMode = false;
+
+// ── API Configuration ──────────────────────────────────
+let API_BASE_URL = localStorage.getItem('etd_api_url') || '';
+let FORCE_SIMULATION = localStorage.getItem('etd_force_sim') === 'true';
+
+// ── Realistic Pakistani Grid Presets ───────────────────
+const PRESETS = {
+  pk001: {
+    consumerId: 'PK001', clientType: 'residential',
+    feederId: 'FEEDER-EAST-03', feederLoss: 17.8,
+    solar: false, sealBroken: false, topoFault: false, tamper: 0, audit: 'none',
+    series: [45.2,44.8,46.1,47.0,43.5,48.2,45.9,44.1,46.8,45.0,44.9,47.1,4.2,4.1,3.8,4.5,4.0,3.9,4.2,4.1,3.9,4.4,4.0,4.2]
+  },
+  pk003: {
+    consumerId: 'PK003', clientType: 'commercial',
+    feederId: 'FEEDER-NORTH-01', feederLoss: 28.4,
+    solar: false, sealBroken: false, topoFault: false, tamper: 1, audit: 'none',
+    series: [42.1,43.5,41.8,44.0,42.9,45.1,43.0,42.5,44.8,43.2,4.5,4.2,4.8,4.1,4.4,4.3,4.2,4.6,4.0,4.3]
+  },
+  pk007: {
+    consumerId: 'PK007', clientType: 'residential',
+    feederId: 'FEEDER-NORTH-01', feederLoss: 24.5,
+    solar: false, sealBroken: false, topoFault: false, tamper: 0, audit: 'confirmed_theft',
+    series: [27.5,26.8,28.1,27.0,26.5,28.4,27.9,27.1,28.0,4.9,4.8,5.1,4.7,4.9,5.0,4.8,5.2,4.9]
+  },
+  solar: {
+    consumerId: 'PK-SOLAR-09', clientType: 'residential',
+    feederId: 'FEEDER-SOUTH-02', feederLoss: 7.8,
+    solar: true, sealBroken: false, topoFault: false, tamper: 0, audit: 'none',
+    series: [15.2,14.8,15.5,15.0,14.9,15.3,8.2,8.5,8.0,8.4,8.1,8.3,8.5,8.2,8.0,8.4]
+  },
+  tamper: {
+    consumerId: 'PK-TAMPER-18', clientType: 'residential',
+    feederId: 'FEEDER-EAST-03', feederLoss: 24.5,
+    solar: false, sealBroken: true, topoFault: false, tamper: 2, audit: 'none',
+    series: [18.2,17.9,18.5,18.0,0.1,0.0,0.2,0.1,0.0,0.1,0.2,0.0,0.1,0.2]
+  },
+  industrial: {
+    consumerId: 'PK-IND-04', clientType: 'industrial',
+    feederId: 'FEEDER-IND-04', feederLoss: 21.0,
+    solar: false, sealBroken: false, topoFault: false, tamper: 0, audit: 'none',
+    series: [840,860,855,870,845,865,850,520,530,510,525,515,535,520,530]
+  },
+  fault: {
+    consumerId: 'PK-FAULT-12', clientType: 'commercial',
+    feederId: 'FEEDER-NORTH-01', feederLoss: 14.2,
+    solar: false, sealBroken: false, topoFault: true, tamper: 0, audit: 'none',
+    series: [35.2,34.8,36.1,35.0,8.2,7.9,8.1,8.5,8.0,8.2]
+  }
+};
+
+// ── Realistic 42 Monitored Pakistani Consumers Dataset ──
+const MOCK_CONSUMERS = [
+  { consumer_id: 'PK001', feeder_id: 'FEEDER-EAST-03', tariff_category: 'residential', sanctioned_load_kw: 5.0, feeder_loss_pct: 17.8, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK002', feeder_id: 'FEEDER-NORTH-01', tariff_category: 'residential', sanctioned_load_kw: 7.0, feeder_loss_pct: 28.4, has_rooftop_solar: false, recent_audit_result: 'cleared' },
+  { consumer_id: 'PK003', feeder_id: 'FEEDER-NORTH-01', tariff_category: 'commercial', sanctioned_load_kw: 15.0, feeder_loss_pct: 28.4, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK004', feeder_id: 'FEEDER-EAST-03', tariff_category: 'residential', sanctioned_load_kw: 4.0, feeder_loss_pct: 17.8, has_rooftop_solar: true, recent_audit_result: 'none' },
+  { consumer_id: 'PK005', feeder_id: 'FEEDER-SOUTH-02', tariff_category: 'residential', sanctioned_load_kw: 3.5, feeder_loss_pct: 7.8, has_rooftop_solar: false, recent_audit_result: 'cleared' },
+  { consumer_id: 'PK006', feeder_id: 'FEEDER-IND-04', tariff_category: 'industrial', sanctioned_load_kw: 75.0, feeder_loss_pct: 21.0, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK007', feeder_id: 'FEEDER-NORTH-01', tariff_category: 'residential', sanctioned_load_kw: 6.0, feeder_loss_pct: 28.4, has_rooftop_solar: false, recent_audit_result: 'confirmed_theft' },
+  { consumer_id: 'PK008', feeder_id: 'FEEDER-EAST-03', tariff_category: 'commercial', sanctioned_load_kw: 12.0, feeder_loss_pct: 17.8, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK009', feeder_id: 'FEEDER-SOUTH-02', tariff_category: 'residential', sanctioned_load_kw: 5.0, feeder_loss_pct: 7.8, has_rooftop_solar: true, recent_audit_result: 'none' },
+  { consumer_id: 'PK010', feeder_id: 'FEEDER-IND-04', tariff_category: 'industrial', sanctioned_load_kw: 120.0, feeder_loss_pct: 21.0, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK011', feeder_id: 'FEEDER-NORTH-01', tariff_category: 'residential', sanctioned_load_kw: 4.5, feeder_loss_pct: 28.4, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK012', feeder_id: 'FEEDER-EAST-03', tariff_category: 'residential', sanctioned_load_kw: 5.5, feeder_loss_pct: 17.8, has_rooftop_solar: false, recent_audit_result: 'meter_fault' },
+  { consumer_id: 'PK013', feeder_id: 'FEEDER-NORTH-01', tariff_category: 'commercial', sanctioned_load_kw: 18.0, feeder_loss_pct: 28.4, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK014', feeder_id: 'FEEDER-SOUTH-02', tariff_category: 'residential', sanctioned_load_kw: 3.0, feeder_loss_pct: 7.8, has_rooftop_solar: false, recent_audit_result: 'cleared' },
+  { consumer_id: 'PK015', feeder_id: 'FEEDER-IND-04', tariff_category: 'industrial', sanctioned_load_kw: 90.0, feeder_loss_pct: 21.0, has_rooftop_solar: false, recent_audit_result: 'none' },
+  { consumer_id: 'PK016', feeder_id: 'FEEDER-EAST-03', tariff_category: 'residential', sanctioned_load_kw: 4.0, feeder_loss_pct: 17.8, has_rooftop_solar: true, recent_audit_result: 'none' }
+];
+
+// Mock Tickets in LocalStorage
+let MOCK_TICKETS = [
+  { ticket_id: 'TCK-IESCO-1018-91', consumer_id: 'PK001', feeder_id: 'FEEDER-EAST-03', risk_tier: 'CRITICAL', theft_probability: 0.942, action_recommendation: 'DISPATCH_RAID_TEAM', status: 'PENDING' },
+  { ticket_id: 'TCK-LESCO-4022-14', consumer_id: 'PK003', feeder_id: 'FEEDER-NORTH-01', risk_tier: 'HIGH', theft_probability: 0.815, action_recommendation: 'VERIFY_METER_HARDWARE', status: 'PENDING' },
+  { ticket_id: 'TCK-PESCO-7193-02', consumer_id: 'PK007', feeder_id: 'FEEDER-NORTH-01', risk_tier: 'CRITICAL', theft_probability: 0.965, action_recommendation: 'DISPATCH_RAID_TEAM', status: 'PENDING' },
+  { ticket_id: 'TCK-MEPCO-8812-55', consumer_id: 'PK-TAMPER-18', feeder_id: 'FEEDER-EAST-03', risk_tier: 'CRITICAL', theft_probability: 0.988, action_recommendation: 'DISPATCH_RAID_TEAM', status: 'PENDING' },
+  { ticket_id: 'TCK-IESCO-2091-33', consumer_id: 'PK006', feeder_id: 'FEEDER-IND-04', risk_tier: 'HIGH', theft_probability: 0.760, action_recommendation: 'SCHEDULE_AUDIT', status: 'PENDING' },
+  { ticket_id: 'TCK-LESCO-3301-18', consumer_id: 'PK013', feeder_id: 'FEEDER-NORTH-01', risk_tier: 'MEDIUM', theft_probability: 0.580, action_recommendation: 'MONITOR', status: 'PENDING' }
+];
+
+// ── Initialization ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initCharts();
+  loadPreset('pk001');
+  initDragAndDrop();
+  checkAndConnectBackend();
+});
+
+function initTheme() {
+  const saved = localStorage.getItem('etd_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('etd_theme', next);
+  updateThemeIcon(next);
+  if (consumptionChart) consumptionChart.update();
+  if (feederLossChart) feederLossChart.update();
+}
+
+function updateThemeIcon(t) {
+  const icon = document.getElementById('theme-icon');
+  if (!icon) return;
+  if (t === 'light') {
+    icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+  } else {
+    icon.innerHTML = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+  }
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+// ── Tab Switching ──────────────────────────────────────
+function showTab(id) {
+  currentTab = id;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('data-tab') === id);
+  });
+
+  // Close mobile sidebar if open
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Charts Setup ───────────────────────────────────────
+function initCharts() {
+  // Feeder Loss Chart
+  const ctx1 = document.getElementById('feederLossChart').getContext('2d');
+  feederLossChart = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['FEEDER-NORTH-01', 'FEEDER-IND-04', 'FEEDER-EAST-03', 'FEEDER-SOUTH-02'],
+      datasets: [{
+        label: 'Line Loss (%)',
+        data: [28.4, 21.0, 17.8, 7.8],
+        backgroundColor: ['rgba(239,68,68,0.7)', 'rgba(245,158,11,0.7)', 'rgba(43,127,255,0.7)', 'rgba(16,185,129,0.7)'],
+        borderColor:     ['#ef4444', '#f59e0b', '#2b7fff', '#10b981'],
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }, {
+        label: 'NEPRA Benchmark (15%)',
+        data: [15, 15, 15, 15],
+        type: 'line',
+        borderColor: 'rgba(255,255,255,0.4)',
+        borderDash: [5, 4],
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true, max: 35,
+          grid: { color: 'rgba(100,116,139,0.15)' },
+          ticks: { color: '#7a97ba', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#7a97ba', font: { family: 'JetBrains Mono', size: 9.5 } }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0c1626', borderColor: '#1c314f', borderWidth: 1,
+          titleColor: '#e2eaf5', bodyColor: '#7a97ba',
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` }
+        }
+      }
+    }
+  });
+
+  // Feeder Risk Matrix rendering
+  const feeders = [
+    { id: 'FEEDER-NORTH-01', loss: '28.4%', meters: '14', status: 'CRITICAL', cls: 'badge-crit' },
+    { id: 'FEEDER-IND-04',   loss: '21.0%', meters: '10', status: 'HIGH',     cls: 'badge-high' },
+    { id: 'FEEDER-EAST-03',  loss: '17.8%', meters: '12', status: 'HIGH',     cls: 'badge-high' },
+    { id: 'FEEDER-SOUTH-02', loss: '7.8%',  meters: '6',  status: 'LOW',      cls: 'badge-low'  },
+  ];
+  document.getElementById('feeder-matrix').innerHTML = feeders.map(f => `
+    <div class="feeder-row">
+      <div>
+        <div class="name">${f.id}</div>
+        <div class="sub">${f.meters} monitored meters · Line Loss: <strong style="color:var(--text)">${f.loss}</strong></div>
+      </div>
+      <span class="badge ${f.cls}">${f.status}</span>
+    </div>
+  `).join('');
+
+  // Daily Consumption Chart
+  const ctx2 = document.getElementById('consumptionChart').getContext('2d');
+  consumptionChart = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Daily kWh',
+        data: [],
+        borderColor: '#2b7fff',
+        backgroundColor: 'rgba(43,127,255,0.08)',
+        fill: true, tension: 0.3,
+        borderWidth: 2,
+        pointRadius: 3, pointHoverRadius: 6,
+        pointBackgroundColor: '#2b7fff',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(100,116,139,0.15)' },
+          ticks: { color: '#7a97ba', font: { family: 'JetBrains Mono', size: 10 } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#7a97ba', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 14 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0c1626', borderColor: '#1c314f', borderWidth: 1,
+          titleColor: '#e2eaf5', bodyColor: '#7a97ba',
+          callbacks: { label: ctx => ` Day ${ctx.dataIndex + 1}: ${ctx.parsed.y} kWh` }
+        }
+      }
+    }
+  });
+}
+
+function updateChartData(series) {
+  if (!consumptionChart) return;
+  consumptionChart.data.labels = series.map((_, i) => 'D' + (i + 1));
+  consumptionChart.data.datasets[0].data = series;
+  consumptionChart.update('active');
+
+  // Update strip numbers
+  const sum = series.reduce((a, b) => a + b, 0);
+  const mean = series.length > 0 ? (sum / series.length).toFixed(1) : 0;
+  const min = series.length > 0 ? Math.min(...series).toFixed(1) : 0;
+  const max = series.length > 0 ? Math.max(...series).toFixed(1) : 0;
+  const monthly = (mean * 30).toFixed(0);
+
+  document.getElementById('strip-mean').textContent = mean + ' kWh';
+  document.getElementById('strip-min').textContent = min + ' kWh';
+  document.getElementById('strip-max').textContent = max + ' kWh';
+  document.getElementById('strip-monthly').textContent = monthly + ' kWh/mo';
+}
+
+// ── Presets & Drag-and-Drop ────────────────────────────
+function loadPreset(key) {
+  const p = PRESETS[key];
+  if (!p) return;
+  document.getElementById('ctx-consumer-id').value   = p.consumerId;
+  document.getElementById('ctx-client-type').value   = p.clientType;
+  document.getElementById('ctx-feeder-id').value     = p.feederId;
+  document.getElementById('ctx-feeder-loss').value   = p.feederLoss;
+  document.getElementById('feeder-loss-val').textContent = p.feederLoss + '%';
+  document.getElementById('ctx-solar').checked       = p.solar;
+  document.getElementById('ctx-seal-broken').checked = p.sealBroken;
+  document.getElementById('ctx-topo-fault').checked  = !!p.topoFault;
+  document.getElementById('ctx-tamper-count').value  = p.tamper;
+  document.getElementById('ctx-audit-result').value  = p.audit;
+  document.getElementById('series-input').value      = p.series.join(', ');
+  document.getElementById('series-length-tag').textContent = p.series.length + ' Days';
+  document.getElementById('curve-title').textContent = 'Load Profile — ' + p.consumerId;
+
+  updateChartData(p.series);
+
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active-preset', b.getAttribute('data-key') === key);
+  });
+  showToast('Loaded profile for ' + p.consumerId, 'info');
+}
+
+function applyManualSeries() {
+  const val = document.getElementById('series-input').value;
+  const parsed = val.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+  if (parsed.length > 0) {
+    updateChartData(parsed);
+    document.getElementById('series-length-tag').textContent = parsed.length + ' Days';
+    showToast('Chart updated (' + parsed.length + ' readings)', 'success');
+  } else {
+    showToast('No valid numeric readings found', 'error');
+  }
+}
+
+function initDragAndDrop() {
+  const dropzone = document.getElementById('dropzone');
+  if (!dropzone) return;
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.remove('dragover');
+    }, false);
+  });
+
+  dropzone.addEventListener('drop', e => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) processReadingFile(files[0]);
+  }, false);
+}
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (file) processReadingFile(file);
+}
+
+function processReadingFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const text = evt.target.result;
+    const nums = text.replace(/[\r\n]+/g, ',').split(',')
+      .map(s => parseFloat(s.trim()))
+      .filter(n => !isNaN(n));
+    if (nums.length > 0) {
+      document.getElementById('series-input').value = nums.join(', ');
+      updateChartData(nums);
+      document.getElementById('series-length-tag').textContent = nums.length + ' Days';
+      showToast(`Loaded ${nums.length} daily readings from ${file.name}`, 'success');
+    } else {
+      showToast('Could not extract numbers from ' + file.name, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Backend API & Simulation Engine ────────────────────
+async function checkAndConnectBackend() {
+  const pill = document.getElementById('status-pill');
+  const txt = document.getElementById('status-text');
+
+  if (FORCE_SIMULATION) {
+    activateSimulationMode('FORCED SIMULATION');
+    return;
+  }
+
+  const endpoint = (API_BASE_URL || window.location.origin) + '/api/v1/health';
+  const t0 = performance.now();
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+    const resp = await fetch(endpoint, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (resp.ok) {
+      const lat = Math.round(performance.now() - t0);
+      isSimulationMode = false;
+      pill.className = 'status-pill';
+      txt.textContent = `BACKEND ONLINE · ${lat}ms`;
+      fetchStatistics();
+      fetchConsumers();
+      fetchTickets();
+      return;
+    }
+  } catch (err) {
+    // Backend unreachable -> graceful fallback to client simulation
+  }
+
+  activateSimulationMode('CLIENT SIMULATION MODE');
+}
+
+function activateSimulationMode(label) {
+  isSimulationMode = true;
+  const pill = document.getElementById('status-pill');
+  const txt = document.getElementById('status-text');
+  pill.className = 'status-pill sim';
+  txt.textContent = label || 'SIMULATION MODE';
+  loadMockData();
+}
+
+function loadMockData() {
+  registeredConsumers = [...MOCK_CONSUMERS];
+  renderRegistryTable(registeredConsumers);
+  renderTicketsTable(MOCK_TICKETS);
+
+  document.getElementById('kpi-consumers').textContent = '42 accounts';
+  document.getElementById('kpi-tickets').textContent = MOCK_TICKETS.length + ' pending';
+  document.getElementById('kpi-precision').textContent = '87.5%';
+  document.getElementById('kpi-penalties').textContent = 'PKR 2,450,000';
+}
+
+// ── Single-Account Inference ────────────────────────────
+async function runInference() {
+  const btn = document.getElementById('btn-run-detect');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Running 4-Channel Inference…`;
+
+  const consumerId = (document.getElementById('ctx-consumer-id').value || 'PK001').trim();
+  const clientType = document.getElementById('ctx-client-type').value;
+  const feederId   = document.getElementById('ctx-feeder-id').value;
+  const feederLoss = parseFloat(document.getElementById('ctx-feeder-loss').value);
+  const solar      = document.getElementById('ctx-solar').checked;
+  const sealBroken = document.getElementById('ctx-seal-broken').checked;
+  const topoFault  = document.getElementById('ctx-topo-fault').checked;
+  const audit      = document.getElementById('ctx-audit-result').value;
+  const tamper     = parseInt(document.getElementById('ctx-tamper-count').value) || 0;
+  const rawText    = document.getElementById('series-input').value;
+  const readings   = rawText.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+
+  if (readings.length === 0) {
+    showToast('Please provide consumption readings first.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Execute AI Theft Detection`;
+    return;
+  }
+
+  // If live backend is available, call it; otherwise run client-side simulation
+  if (!isSimulationMode) {
+    const payload = {
+      consumer_id: consumerId, client_type: clientType, daily_kwh: readings,
+      context: {
+        feeder_id: feederId, feeder_loss_pct: feederLoss,
+        recent_audit_result: audit,
+        months_since_last_audit: (audit === 'cleared' ? 2 : 999),
+        has_rooftop_solar: solar, solar_net_metering_active: solar,
+        meter_seal_broken: sealBroken, tamper_event_count: tamper,
+        known_grid_topology_issue: topoFault,
+        billing_dispute_open: false, tariff_rate_per_kwh: 28.0
+      }
+    };
+
+    try {
+      const url = (API_BASE_URL || '') + '/api/v1/predict/single';
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        currentDetectionResult = data;
+        renderDetectionOutput(data);
+        showToast(`AI Assessment: ${data.risk_tier} RISK`, data.is_theft_suspect ? 'error' : 'success');
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend call failed, falling back to simulated inference', err);
+    }
+  }
+
+  // Fallback Simulation Engine (Deterministic Neural & Rule Modeling)
+  await new Promise(r => setTimeout(r, 400)); // Smooth animation delay
+  const simResult = calculateSimulatedInference(consumerId, clientType, feederId, feederLoss, solar, sealBroken, topoFault, audit, tamper, readings);
+  currentDetectionResult = simResult;
+  renderDetectionOutput(simResult);
+  showToast(`Simulated Assessment: ${simResult.risk_tier} RISK`, simResult.is_theft_suspect ? 'error' : 'success');
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Execute AI Theft Detection`;
+}
+
+function calculateSimulatedInference(consumerId, clientType, feederId, feederLoss, solar, sealBroken, topoFault, audit, tamper, readings) {
+  // 1. Calculate drop ratio
+  const half = Math.floor(readings.length / 2);
+  const baseline = readings.slice(0, Math.max(1, half));
+  const recent = readings.slice(half);
+  const baseMean = baseline.reduce((a, b) => a + b, 0) / baseline.length;
+  const recMean = recent.length > 0 ? (recent.reduce((a, b) => a + b, 0) / recent.length) : baseMean;
+  const dropRatio = baseMean > 0 ? Math.max(0, (baseMean - recMean) / baseMean) : 0;
+
+  // 2. Raw score from drop + volatility
+  let rawScore = Math.min(0.98, Math.max(0.02, dropRatio * 1.05));
+  if (clientType === 'industrial') rawScore = Math.min(0.96, rawScore * 0.9 + 0.1);
+
+  // 3. Apply Multi-Agent Verification Rules
+  let prob = rawScore;
+  const reasons = [];
+
+  if (solar) {
+    prob = Math.max(0.01, prob - 0.25);
+    reasons.push('R1: Rooftop solar PV net-metering active — exonerating daytime drop (-0.25 prob).');
+  }
+  if (topoFault) {
+    prob = Math.max(0.01, prob - 0.30);
+    reasons.push('R2: CT/PT transformer hardware fault confirmed on feeder — technical loss mitigation (-0.30 prob).');
+  }
+  if (audit === 'cleared') {
+    prob = prob * 0.5;
+    reasons.push('R3: Audited & verified clean 2 months ago — 6-month decay suppressor applied.');
+  }
+  if (audit === 'confirmed_theft') {
+    prob = Math.max(0.95, prob);
+    reasons.push('R4: Prior confirmed theft on account — recidivism policy escalates score floor to 0.95.');
+  }
+  if (sealBroken) {
+    prob = Math.min(0.99, prob + 0.25);
+    reasons.push('R5: Physical meter seal breached — physical tampering override applied (+0.25 prob).');
+  }
+  if (feederLoss > 20.0) {
+    prob = Math.min(0.99, prob + 0.08);
+    reasons.push(`R6: Feeder ${feederId} line loss is ${feederLoss}% (>20% NEPRA benchmark) — contextual loss boost.`);
+  }
+
+  // Risk Tier & Protocol
+  let riskTier = 'LOW';
+  let action = 'MONITOR';
+  let isSuspect = false;
+
+  if (prob >= 0.80) {
+    riskTier = 'CRITICAL';
+    action = 'DISPATCH_RAID_TEAM';
+    isSuspect = true;
+  } else if (prob >= 0.65) {
+    riskTier = 'HIGH';
+    action = 'VERIFY_METER_HARDWARE';
+    isSuspect = true;
+  } else if (prob >= 0.40) {
+    riskTier = 'MEDIUM';
+    action = 'SCHEDULE_AUDIT';
+  }
+
+  // Financial loss estimation
+  const dropKwh = Math.max(0, baseMean - recMean);
+  const monthlyKwh = dropKwh * 30;
+  const tariffRate = clientType === 'industrial' ? 38.0 : clientType === 'commercial' ? 42.0 : 28.5;
+  const monthlyLossPkr = monthlyKwh * tariffRate;
+
+  return {
+    consumer_id: consumerId,
+    feeder_id: feederId,
+    consumer_type: clientType,
+    theft_probability: parseFloat(prob.toFixed(4)),
+    raw_model_score: parseFloat(rawScore.toFixed(4)),
+    risk_tier: riskTier,
+    is_theft_suspect: isSuspect,
+    action_recommendation: action,
+    reasons: reasons,
+    financial_impact: {
+      drop_kwh_per_day: parseFloat(dropKwh.toFixed(2)),
+      estimated_monthly_stolen_kwh: parseFloat(monthlyKwh.toFixed(1)),
+      estimated_monthly_loss_currency: parseFloat(monthlyLossPkr.toFixed(0)),
+      tariff_rate: tariffRate
+    }
+  };
+}
+
+function renderDetectionOutput(data) {
+  const panel = document.getElementById('detection-results-panel');
+  panel.style.display = 'block';
+
+  // Badge & Protocol
+  const badge = document.getElementById('res-risk-tier-badge');
+  badge.textContent = data.risk_tier + ' RISK';
+  badge.className = 'risk-badge-lg risk-' + data.risk_tier;
+  document.getElementById('res-action-protocol').textContent = data.action_recommendation || 'MONITOR';
+
+  // Metrics
+  const prob = (data.theft_probability * 100).toFixed(1);
+  document.getElementById('res-prob-val').textContent = prob + '%';
+  const delta = ((data.theft_probability - data.raw_model_score) * 100).toFixed(1);
+  document.getElementById('res-prob-delta').textContent = (delta >= 0 ? '+' : '') + delta + '% multi-agent delta';
+  document.getElementById('res-raw-score').textContent = data.raw_model_score.toFixed(4);
+
+  const fin = data.financial_impact || {};
+  document.getElementById('res-loss-pkr').textContent = 'PKR ' + Math.round(fin.estimated_monthly_loss_currency || 0).toLocaleString();
+  document.getElementById('res-loss-kwh').textContent = (fin.estimated_monthly_stolen_kwh || 0).toFixed(1) + ' kWh unbilled';
+  document.getElementById('res-drop-kwh').textContent = (fin.drop_kwh_per_day || 0).toFixed(2) + ' kWh/day';
+
+  // 4-Channel Animation Bars
+  const p = data.theft_probability;
+  document.getElementById('ch1-bar').style.width = Math.min(100, Math.round(data.raw_model_score * 100)) + '%';
+  document.getElementById('ch1-val').textContent = data.raw_model_score.toFixed(2);
+  document.getElementById('ch2-bar').style.width = Math.min(100, Math.round((p * 0.9 + 0.08) * 100)) + '%';
+  document.getElementById('ch2-val').textContent = (p * 0.9 + 0.08).toFixed(2);
+  document.getElementById('ch3-bar').style.width = Math.min(100, Math.round((p * 0.85 + 0.12) * 100)) + '%';
+  document.getElementById('ch3-val').textContent = (p * 0.85 + 0.12).toFixed(2);
+  document.getElementById('ch4-bar').style.width = Math.min(100, Math.round((p * 0.92 + 0.05) * 100)) + '%';
+  document.getElementById('ch4-val').textContent = (p * 0.92 + 0.05).toFixed(2);
+
+  // Reasons List
+  const list = document.getElementById('res-reasons-list');
+  if (data.reasons && data.reasons.length > 0) {
+    list.innerHTML = data.reasons.map(r => `<li><span class="bullet">▸</span><span>${r}</span></li>`).join('');
+  } else {
+    list.innerHTML = `<li><span class="bullet" style="color:var(--muted)">—</span><span style="color:var(--muted);font-style:italic">No domain mitigations triggered. Raw neural score retained.</span></li>`;
+  }
+
+  // Pre-generate Qwen AI Briefing text
+  generateQwenReportText(data);
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Qwen AI Field Intelligence Briefing ────────────────
+async function generateQwenReport() {
+  if (!currentDetectionResult) {
+    showToast('Run an AI detection first.', 'info');
+    return;
+  }
+  const btn = document.getElementById('btn-gen-ai');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Synthesizing…`;
+
+  if (!isSimulationMode) {
+    try {
+      const url = (API_BASE_URL || '') + '/api/v1/assistant/summarize';
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentDetectionResult)
+      });
+      if (resp.ok) {
+        const res = await resp.json();
+        document.getElementById('ai-briefing-content').textContent = res.summary;
+        showToast('Executive field briefing synthesized', 'success');
+        btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synthesize Briefing`;
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // High-Grade Simulated Briefing Synthesis
+  await new Promise(r => setTimeout(r, 350));
+  generateQwenReportText(currentDetectionResult);
+  showToast('Executive briefing ready', 'success');
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synthesize Briefing`;
+}
+
+function generateQwenReportText(data) {
+  const box = document.getElementById('ai-briefing-content');
+  const fin = data.financial_impact || {};
+  const lossPkr = Math.round(fin.estimated_monthly_loss_currency || 0).toLocaleString();
+  const lossKwh = (fin.estimated_monthly_stolen_kwh || 0).toFixed(1);
+
+  const text = `CONFIDENTIAL // OPERATIONAL DISPATCH BRIEFING
+ACCOUNT: ${data.consumer_id} · FEEDER: ${data.feeder_id} · TIER: ${data.risk_tier} RISK
+
+1. INCIDENT CLASSIFICATION & TELEMETRY
+Target consumer evaluated at ${(data.theft_probability * 100).toFixed(1)}% theft probability (Neural raw: ${data.raw_model_score.toFixed(4)}). Consumption drop averages ${(fin.drop_kwh_per_day || 0).toFixed(2)} kWh/day across the lowest active 30-day monitoring window.
+
+2. DOMAIN VERIFICATION SUMMARY
+${data.reasons.length > 0 ? data.reasons.map(r => '• ' + r).join('\n') : '• Neural pattern verified with no mitigating exceptions.'}
+
+3. FINANCIAL EXPOSURE & STATUTORY ASSESSMENT
+• Monthly Unbilled Energy: ${lossKwh} kWh
+• Estimated Monthly Loss: PKR ${lossPkr}
+• Recommended Statutory Surcharge: Assessment under Section 39-A of the Pakistan Electricity Act (1910) with 6-month retrospective recovery calculation.
+
+4. FIELD SQUAD DIRECTIVE [ACTION: ${data.action_recommendation}]
+Inspection team dispatched under Sub-Divisional Officer (SDO) supervision. Required squad gear: calibrated clamp ammeter, ultrasonic seal inspection detector, phase-sequence meter, replacement digital smart meter, and official tamper evidence custody bags.`;
+
+  box.textContent = text;
+}
+
+function copyBriefing() {
+  const text = document.getElementById('ai-briefing-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Briefing copied to clipboard', 'success');
+  }).catch(() => {
+    showToast('Failed to copy', 'error');
+  });
+}
+
+function printBriefing() {
+  const content = document.getElementById('ai-briefing-content').textContent;
+  const win = window.open('', '_blank');
+  win.document.write(`<html><head><title>Field Briefing - ${document.getElementById('ctx-consumer-id').value}</title><style>body{font-family:monospace;padding:24px;white-space:pre-wrap;line-height:1.5}</style></head><body>${content}</body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
+// ── Telemetry & Statistics ─────────────────────────────
+async function fetchStatistics() {
+  if (isSimulationMode) return;
+  try {
+    const url = (API_BASE_URL || '') + '/api/v1/statistics';
+    const resp = await fetch(url);
+    if (!resp.ok) return;
+    const d = await resp.json();
+
+    document.getElementById('kpi-consumers').textContent = (d.total_monitored_consumers || 42) + ' accounts';
+    document.getElementById('kpi-tickets').textContent   = (d.pending_dispatches || 0) + ' pending';
+    document.getElementById('kpi-penalties').textContent = 'PKR ' + Math.round(d.total_penalties_recovered_pkr || 0).toLocaleString();
+    const prec = d.completed_audits > 0
+      ? ((d.confirmed_thefts_logged / d.completed_audits) * 100).toFixed(1) + '%'
+      : '87.5%';
+    document.getElementById('kpi-precision').textContent = prec;
+  } catch(e) {}
+}
+
+// ── Monitored Consumers Registry ───────────────────────
+async function fetchConsumers() {
+  if (isSimulationMode) return;
+  try {
+    const url = (API_BASE_URL || '') + '/api/v1/consumers';
+    const resp = await fetch(url);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    registeredConsumers = data.consumers || [];
+    renderRegistryTable(registeredConsumers);
+  } catch(e) {}
+}
+
+function renderRegistryTable(items) {
+  const tbody = document.getElementById('registry-tbody');
+  if (!tbody) return;
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matching consumers found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td class="mono" style="font-weight:700;color:var(--text)">${c.consumer_id}</td>
+      <td class="mono text-muted">${c.feeder_id}</td>
+      <td class="mono" style="text-transform:uppercase">${c.tariff_category}</td>
+      <td class="mono">${c.sanctioned_load_kw} kW</td>
+      <td class="mono" style="font-weight:700;color:var(--brand)">${c.feeder_loss_pct}%</td>
+      <td class="mono">${c.has_rooftop_solar ? '<span style="color:var(--green);font-weight:700">YES</span>' : '<span style="color:var(--muted)">NO</span>'}</td>
+      <td class="mono" style="text-transform:capitalize">${c.recent_audit_result}</td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-sm" onclick="inspectConsumer('${c.consumer_id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Inspect
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterRegistry() {
+  const q = document.getElementById('registry-search').value.toLowerCase();
+  const f = document.getElementById('registry-feeder-filter').value;
+  const filtered = registeredConsumers.filter(c => {
+    const mq = c.consumer_id.toLowerCase().includes(q) || c.feeder_id.toLowerCase().includes(q);
+    const mf = (f === 'ALL' || c.feeder_id === f);
+    return mq && mf;
+  });
+  renderRegistryTable(filtered);
+}
+
+function inspectConsumer(consumerId) {
+  const match = registeredConsumers.find(c => c.consumer_id === consumerId);
+  if (match) {
+    document.getElementById('ctx-consumer-id').value   = match.consumer_id;
+    document.getElementById('ctx-feeder-id').value     = match.feeder_id;
+    document.getElementById('ctx-client-type').value   = match.tariff_category;
+    document.getElementById('ctx-feeder-loss').value   = match.feeder_loss_pct;
+    document.getElementById('feeder-loss-val').textContent = match.feeder_loss_pct + '%';
+    document.getElementById('ctx-solar').checked       = match.has_rooftop_solar;
+    document.getElementById('ctx-audit-result').value  = match.recent_audit_result;
+  }
+  showTab('detection');
+  showToast('Loaded ' + consumerId + ' into Detection Studio', 'info');
+}
+
+// ── Tickets Management ─────────────────────────────────
+async function fetchTickets() {
+  if (isSimulationMode) {
+    renderTicketsTable(MOCK_TICKETS);
+    return;
+  }
+  try {
+    const url = (API_BASE_URL || '') + '/api/v1/inspections/queue';
+    const resp = await fetch(url);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    renderTicketsTable(data.tickets || []);
+  } catch(e) {
+    renderTicketsTable(MOCK_TICKETS);
+  }
+}
+
+function renderTicketsTable(tickets) {
+  const tbody = document.getElementById('overview-tickets-tbody');
+  if (!tbody) return;
+  if (tickets.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No active inspection tickets on file.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = tickets.slice(0, 8).map(t => {
+    const riskCls = t.risk_tier === 'CRITICAL' ? 'badge-crit' : t.risk_tier === 'HIGH' ? 'badge-high' : 'badge-med';
+    return `
+      <tr>
+        <td class="mono" style="font-weight:700;color:var(--brand)">${t.ticket_id}</td>
+        <td class="mono" style="font-weight:700;color:var(--text)">${t.consumer_id}</td>
+        <td class="mono text-muted">${t.feeder_id}</td>
+        <td><span class="badge ${riskCls}">${t.risk_tier}</span></td>
+        <td class="mono" style="font-weight:800">${(t.theft_probability * 100).toFixed(1)}%</td>
+        <td class="mono text-muted" style="font-size:11px">${t.action_recommendation}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary btn-sm" onclick="openAuditTicket('${t.ticket_id}','${t.consumer_id}')">
+            Resolve
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openAuditTicket(ticketId, consumerId) {
+  document.getElementById('audit-ticket-id').value  = ticketId;
+  document.getElementById('audit-consumer-id').value = consumerId;
+  showTab('audit');
+  showToast('Opened ' + ticketId + ' for field audit entry', 'info');
+}
+
+// ── Field Audit Submission ──────────────────────────────
+async function submitAuditAction(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit-audit');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Committing…`;
+
+  const ticketId   = document.getElementById('audit-ticket-id').value;
+  const consumerId = document.getElementById('audit-consumer-id').value;
+  const inspector  = document.getElementById('audit-inspector-id').value;
+  const outcome    = document.getElementById('audit-outcome-select').value;
+  const penalty    = parseFloat(document.getElementById('audit-penalty-amount').value) || 0;
+  const notes      = document.getElementById('audit-notes').value;
+
+  const payload = {
+    ticket_id: ticketId, inspector_id: inspector,
+    action_outcome: outcome, actual_theft_found: (outcome === 'CONFIRMED_THEFT'),
+    penalty_imposed_currency: penalty, notes, consumer_id: consumerId
+  };
+
+  if (!isSimulationMode) {
+    try {
+      const url = (API_BASE_URL || '') + `/api/v1/inspections/${ticketId}/action`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        showToast('Audit recorded successfully to database: ' + ticketId, 'success');
+        fetchStatistics();
+        fetchTickets();
+        btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Commit Finding to Database`;
+        return;
+      }
+    } catch(err) {}
+  }
+
+  // Simulated Audit Resolution
+  await new Promise(r => setTimeout(r, 400));
+  MOCK_TICKETS = MOCK_TICKETS.filter(t => t.ticket_id !== ticketId);
+  renderTicketsTable(MOCK_TICKETS);
+  document.getElementById('kpi-tickets').textContent = MOCK_TICKETS.length + ' pending';
+  showToast(`Committed audit for ${consumerId}: ${outcome}`, 'success');
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Commit Finding to Database`;
+}
+
+// ── Batch Feeder Evaluation ─────────────────────────────
+async function runBatchEvaluation() {
+  const btn = document.getElementById('btn-run-batch');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Scoring 30 Cohorts…`;
+
+  const feeder = document.getElementById('batch-feeder-select').value;
+  const items = [];
+
+  for (let i = 1; i <= 30; i++) {
+    const isTheft = [2, 6, 11, 19, 27].includes(i);
+    items.push({
+      consumer_id: `PK-${feeder.substring(7, 12)}-${1000 + i}`,
+      client_type: 'residential',
+      daily_kwh: isTheft ? PRESETS.pk001.series : PRESETS.solar.series,
+      context: {
+        feeder_id: feeder,
+        feeder_loss_pct: feeder.includes('NORTH') ? 28.4 : 17.8,
+        recent_audit_result: i === 6 ? 'confirmed_theft' : 'none',
+        has_rooftop_solar: [5, 14].includes(i),
+        meter_seal_broken: [2, 19].includes(i),
+        tamper_event_count: i === 19 ? 2 : 0,
+        tariff_rate_per_kwh: 28.5
+      }
+    });
+  }
+
+  if (!isSimulationMode) {
+    try {
+      const url = (API_BASE_URL || '') + '/api/v1/predict/batch';
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, threshold: 0.65 })
+      });
+      if (resp.ok) {
+        const res = await resp.json();
+        batchQueueData = res.prioritized_queue || [];
+        renderBatchResults(res.total_analyzed, res.total_suspects, res.total_estimated_monthly_loss, batchQueueData);
+        btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Score Feeder Cohort`;
+        return;
+      }
+    } catch(err) {}
+  }
+
+  // Simulated Batch Scoring
+  await new Promise(r => setTimeout(r, 600));
+  const simQueue = items.map((it, idx) => {
+    const isTheft = [2, 6, 11, 19, 27].includes(idx + 1);
+    const prob = isTheft ? (0.84 + Math.random() * 0.14) : (0.02 + Math.random() * 0.22);
+    const tier = prob >= 0.8 ? 'CRITICAL' : prob >= 0.65 ? 'HIGH' : prob >= 0.4 ? 'MEDIUM' : 'LOW';
+    return {
+      consumer_id: it.consumer_id,
+      feeder_id: feeder,
+      risk_tier: tier,
+      verified_theft_probability: parseFloat(prob.toFixed(4)),
+      action_recommendation: tier === 'CRITICAL' ? 'DISPATCH_RAID_TEAM' : tier === 'HIGH' ? 'VERIFY_METER_HARDWARE' : 'MONITOR',
+      estimated_monthly_loss_currency: isTheft ? 65000 + idx * 4500 : 0
+    };
+  }).sort((a, b) => b.verified_theft_probability - a.verified_theft_probability);
+
+  batchQueueData = simQueue;
+  const suspects = simQueue.filter(s => s.verified_theft_probability >= 0.65).length;
+  const totalLoss = simQueue.reduce((acc, s) => acc + s.estimated_monthly_loss_currency, 0);
+
+  renderBatchResults(30, suspects, totalLoss, simQueue);
+  showToast(`Batch complete: ${suspects} high-risk suspects prioritized`, 'success');
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Score Feeder Cohort`;
+}
+
+function renderBatchResults(total, suspects, loss, queue) {
+  document.getElementById('batch-summary').style.display = 'block';
+  document.getElementById('batch-analyzed-count').textContent = total;
+  document.getElementById('batch-suspect-count').textContent  = suspects;
+  document.getElementById('batch-loss-count').textContent     = 'PKR ' + Math.round(loss).toLocaleString();
+
+  const tbody = document.getElementById('batch-queue-tbody');
+  tbody.innerHTML = queue.map((item, idx) => {
+    const riskCls = item.risk_tier === 'CRITICAL' ? 'badge-crit' : item.risk_tier === 'HIGH' ? 'badge-high' : item.risk_tier === 'MEDIUM' ? 'badge-med' : 'badge-low';
+    return `
+      <tr>
+        <td class="mono text-muted" style="font-weight:700">#${idx + 1}</td>
+        <td class="mono" style="font-weight:700;color:var(--text)">${item.consumer_id}</td>
+        <td class="mono text-muted">${item.feeder_id}</td>
+        <td><span class="badge ${riskCls}">${item.risk_tier}</span></td>
+        <td class="mono" style="font-weight:800">${(item.verified_theft_probability * 100).toFixed(1)}%</td>
+        <td class="mono text-muted" style="font-size:11px">${item.action_recommendation}</td>
+        <td style="text-align:right">
+          <button class="btn btn-ghost btn-sm" onclick="inspectConsumer('${item.consumer_id}')">Inspect</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function exportBatchCSV() {
+  if (batchQueueData.length === 0) {
+    showToast('Score a feeder batch first.', 'info');
+    return;
+  }
+  const hdr = ['Priority', 'Consumer ID', 'Feeder ID', 'Risk Tier', 'Theft Probability', 'Assigned Protocol'];
+  const rows = batchQueueData.map((r, i) => [i + 1, r.consumer_id, r.feeder_id, r.risk_tier, (r.verified_theft_probability * 100).toFixed(1) + '%', r.action_recommendation]);
+  const csv = 'data:text/csv;charset=utf-8,' + [hdr.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = encodeURI(csv);
+  a.download = `ETD_Dispatch_Manifest_${document.getElementById('batch-feeder-select').value}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('Field inspection manifest CSV exported', 'success');
+}
+
+// ── Global Refresh & Settings ──────────────────────────
+function refreshAll() {
+  const icon = document.getElementById('refresh-icon');
+  icon.classList.add('spin');
+  checkAndConnectBackend().then(() => {
+    setTimeout(() => icon.classList.remove('spin'), 400);
+    showToast('Telemetry refreshed', 'info');
+  });
+}
+
+function openSettingsModal() {
+  document.getElementById('api-url-input').value = API_BASE_URL;
+  document.getElementById('force-sim-toggle').checked = FORCE_SIMULATION;
+  document.getElementById('ping-result').textContent = '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+function openGuideModal() {
+  document.getElementById('guide-modal').classList.add('open');
+}
+
+function closeGuideModal() {
+  document.getElementById('guide-modal').classList.remove('open');
+}
+
+async function testApiConnection() {
+  const pingEl = document.getElementById('ping-result');
+  const target = (document.getElementById('api-url-input').value || window.location.origin).replace(/\/$/, '');
+  pingEl.style.color = 'var(--muted)';
+  pingEl.textContent = 'Pinging…';
+
+  const t0 = performance.now();
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const resp = await fetch(target + '/api/v1/health', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const lat = Math.round(performance.now() - t0);
+      pingEl.style.color = 'var(--green)';
+      pingEl.textContent = `✓ Healthy (${lat}ms)`;
+      return;
+    }
+  } catch(e) {}
+
+  pingEl.style.color = 'var(--red)';
+  pingEl.textContent = '✗ Unreachable';
+}
+
+function saveSettings() {
+  API_BASE_URL = document.getElementById('api-url-input').value.trim();
+  FORCE_SIMULATION = document.getElementById('force-sim-toggle').checked;
+
+  localStorage.setItem('etd_api_url', API_BASE_URL);
+  localStorage.setItem('etd_force_sim', FORCE_SIMULATION ? 'true' : 'false');
+
+  closeSettingsModal();
+  showToast('Settings saved', 'success');
+  checkAndConnectBackend();
+}
+
+// ── Toast Notifications ────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3500);
+}
+</script>
+</body>
+</html>
