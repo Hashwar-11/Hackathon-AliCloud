@@ -1,0 +1,398 @@
+================================================================================
+PERSONALIZED OUTREACH EMAILS FOR ALL PAKISTANI DISCOs & PITC
+Sender Official Email: bscs2453@pieas.edu.pk
+Team: Muhammad Hashwar Haider, Maheen & Eimaan (PIEAS, Islamabad)
+Competition: Final Round — Alibaba Cloud AI Hackathon (Pakistan)
+Live Demo: https://etd-platform-pk.web.app
+GitHub Repo: https://github.com/Hashwar-11/Hackathon-AliCloud
+================================================================================
+
+
+################################################################################
+1. PITC (Power Information Technology Company) — CENTRAL AMI & DATA AUTHORITY
+################################################################################
+To: info@pitc.com.pk, qaccms@pitc.com.pk, ccms@pitc.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Dr. Muhammad Kashif Shahzad (Chief Executive Officer, PITC) and Director General (IT / Smart Grid & AMI),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed specifically to combat Non-Technical Losses (NTL) across Pakistani power distribution networks.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or seasonal shifts). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As PITC serves as the central technology backbone for Pakistan's power sector and AMI infrastructure, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind evaluation for PITC ahead of our Final Round presentation.
+
+To ensure 100% compliance and zero security risk to PITC infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production SCADA/billing databases; a static historical dataset or isolated test API/sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with PITC's technical directorate free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+2. IESCO (Islamabad Electric Supply Company)
+################################################################################
+To: dg_is@iesco.com.pk, is@iesco.com.pk, ceo@iesco.com.pk, pro@iesco.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Khalid Mehmood (Chief Executive Officer, IESCO) and Director General (MIS / Information Systems, IESCO),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out to our home-region utility because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed specifically to combat Non-Technical Losses (NTL) in IESCO and Pakistani power distribution networks.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering in Islamabad/Rawalpindi). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract from IESCO's AMI/MIS directorate so we can run a complimentary blind test for IESCO. Being based at PIEAS in Islamabad, our team can also visit the IESCO Head Office (G-7/4) in person for a live demonstration.
+
+To ensure 100% compliance and zero security risk to IESCO:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production databases; a static historical dataset or isolated test sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with IESCO's technical team free of cost.
+
+We would be honored to present a brief 10-minute demo (online or in person at IESCO HQ) and sign a formal Non-Disclosure Agreement (NDA) through PIEAS if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+3. MEPCO (Multan Electric Power Company)
+################################################################################
+To: dgit@mepco.com.pk, mis@mepco.com.pk, ceo@mepco.com.pk, csd@mepco.com.pk, info@mepco.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Jam Gul Muhammad Zahid (Chief Executive Officer, MEPCO) and Mr. Qaiser Abbas Naqvi (Director IT / Computer Centre, MEPCO HQ),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform—already pre-validated on preliminary MEPCO theft telemetry—to combat Non-Technical Losses (NTL).
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or seasonal agricultural/industrial shifts). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on 42 real Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching M&S / vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we want to expand our validation on MEPCO feeders. We kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind test for MEPCO.
+
+To ensure 100% compliance and zero security risk to MEPCO infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production billing databases; a static historical dataset or isolated test sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with MEPCO's IT & M&S teams free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+4. LESCO (Lahore Electric Supply Company)
+################################################################################
+To: cpo@lesco.gov.pk, dgit@lesco.gov.pk, mis@lesco.gov.pk, ceo@lesco.gov.pk, csd@lesco.gov.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Muhammad Ramzan Butt (Chief Executive Officer, LESCO) and Director General (IT / MIS Directorate, LESCO),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed specifically to combat Non-Technical Losses (NTL) in high-density distribution networks like LESCO.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or seasonal shifts). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we want to benchmark and demonstrate our system's efficacy on LESCO feeder telemetry. We kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind test for LESCO.
+
+To ensure 100% compliance and zero security risk to LESCO infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production SCADA/billing databases; a static historical dataset or isolated test API/sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with LESCO's technical team free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+5. FESCO (Faisalabad Electric Supply Company)
+################################################################################
+To: dgit@fesco.com.pk, ceo@fesco.com.pk, cfo@fesco.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Muhammad Amir (Chief Executive Officer, FESCO) and Mr. Imdad Ullah (Director General IT, FESCO),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform—featuring specialized residential and industrial anomaly models suited for FESCO's residential and industrial feeders.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or industrial shift changes). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Industrial Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract from FESCO's IT Directorate so we can run a complimentary blind test for FESCO.
+
+To ensure 100% compliance and zero security risk to FESCO infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production SCADA/billing databases; a static historical dataset or isolated test API/sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with FESCO's IT Directorate free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+6. K-ELECTRIC (Karachi)
+################################################################################
+To: customer.care@ke.com.pk, net.metering@ke.com.pk, speakup@ke.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Mr. Syed Muhammad Taha (Chief Executive Officer, K-Electric) and Chief Information & Digital Officer (IT & AMI Analytics Team, K-Electric),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed to combat Non-Technical Losses (NTL) across smart distribution grids.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across PMT/feeder clusters suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering). Our platform replaces unguided inspections with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching field teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+Given K-Electric's leadership in AMI smart meter deployment and digital grid innovation in Pakistan, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind evaluation for K-Electric ahead of our Final Round presentation.
+
+To ensure 100% compliance and zero security risk to K-Electric infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production SCADA/SAP databases; a static historical dataset or isolated test API/sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with K-Electric's data science and analytics team free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+7. GEPCO (Gujranwala Electric Power Company)
+################################################################################
+To: csdgepco@yahoo.com, cedevgepco@gmail.com, complaints@gepco.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Muhammad Ayub (Chief Executive Officer, GEPCO), Customer Services Director (CSD), and Director General IT (GEPCO),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed specifically to combat Non-Technical Losses (NTL) in Pakistani power distribution networks.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or seasonal shifts). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind test for GEPCO.
+
+To ensure 100% compliance and zero security risk to GEPCO infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production billing databases; a static historical dataset or isolated test sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with GEPCO's technical team free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+8. PESCO (Peshawar Electric Supply Company)
+################################################################################
+To: sec.pesco@gmail.com, complaints@pesco.gov.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+
+Dear Engr. Akhtar Hamid Khan (Chief Executive Officer, PESCO) and Director General (IT / MIS Directorate, PESCO),
+
+Assalam-o-Alaikum,
+
+We are a team of researchers and engineers from the Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad. We are reaching out because our team has advanced to the Final Round of the Alibaba Cloud AI Hackathon (Pakistan) for developing an enterprise-grade Electricity Theft Detection (ETD) & Grid Intelligence Platform designed specifically to combat high-loss feeders and Non-Technical Losses (NTL) in Pakistani power distribution networks.
+
+Before you read further, you can inspect and interact with our live deployed platform and source code directly to verify our work:
+- Live Interactive Control Room Demo: https://etd-platform-pk.web.app
+- Open-Source Technical Repository & Documentation: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+ABOUT OUR SYSTEM
+Traditional spot inspections across feeders suffer from a low 5%–10% hit rate and frequently trigger false alarms on legitimate consumption drops (such as rooftop solar net-metering or seasonal shifts). Our platform replaces unguided raiding with a Channel-Boosted Deep Learning + Multi-Agent Verification System:
+
+1. 4-Channel Deep Learning Engine (1D-CNN + BiLSTM & Autoencoders):
+   Analyzes raw daily kWh telemetry alongside autoencoder reconstruction residuals, self-supervised embeddings, and FFT frequency projections (achieving 0.7529 ROC-AUC on 42,372 smart meters, and 64.3% zero-shot recall on preliminary Pakistani theft cases).
+2. 8-Rule Utility Verification Agent:
+   Automatically filters out false positives caused by rooftop solar (net-metering), recent cleared field audits, and CT/PT transformer hardware faults before dispatching vigilance teams.
+3. PKR Revenue Recovery Engine & Executive Briefings:
+   Calculates estimated monthly PKR losses per suspect account and uses Alibaba Cloud Qwen AI to generate actionable raid briefings for field engineers.
+
+OUR REQUEST: SANDBOX / ANONYMIZED HISTORICAL TELEMETRY
+As we prepare for the Final Round evaluation, we kindly request access to a non-production sandbox environment or a de-identified historical CSV/Excel extract so we can run a complimentary blind test for PESCO.
+
+To ensure 100% compliance and zero security risk to PESCO infrastructure:
+- No PII Required: We do NOT require customer names, CNICs, phone numbers, or street addresses—only anonymized Consumer/Meter IDs, daily or monthly kWh readings, tariff category (Residential/Industrial), and (if available) historical confirmed theft/audit labels.
+- Read-Only / Offline Sandbox: We do not need access to live production billing databases; a static historical dataset or isolated test sandbox is more than sufficient.
+- Complimentary Evaluation Report: We will share the complete analytical findings, model benchmark metrics, and prioritized anomaly reports back with PESCO's technical team free of cost.
+
+We would be honored to schedule a brief 10-minute online demo at your convenience or sign a formal Non-Disclosure Agreement (NDA) through our university department if required.
+
+Warm regards,
+
+Muhammad Hashwar Haider, Maheen & Eimaan
+Finalist Team — Alibaba Cloud AI Hackathon (Pakistan)
+Pakistan Institute of Engineering and Applied Sciences (PIEAS), Islamabad
+Official Email: bscs2453@pieas.edu.pk
+Live System: https://etd-platform-pk.web.app
+GitHub Repository: https://github.com/Hashwar-11/Hackathon-AliCloud
+
+
+################################################################################
+9. HESCO (Hyderabad), SEPCO (Sukkur), and QESCO (Quetta)
+################################################################################
+
+--- 9A: HESCO (Hyderabad Electric Supply Company) ---
+To: info@hesco.gov.pk, ceo@hesco.gov.pk, ccms@pitc.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+Salutation: Dear Mr. Faizullah Dahri (Chief Executive Officer, HESCO) and Director General (IT / MIS, HESCO),
+
+--- 9B: SEPCO (Sukkur Electric Power Company) ---
+To: info@sepco.com.pk, ceo@sepco.com.pk, ccms@pitc.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+Salutation: Dear Engr. Aijaz Ahmed Channa (Chief Executive Officer, SEPCO) and Director General (IT / MIS, SEPCO),
+
+--- 9C: QESCO (Quetta Electric Supply Company) ---
+To: info@qesco.com.pk, ceo@qesco.com.pk, ccms@pitc.com.pk
+Subject: Request for Anonymized AMI/Smart Meter Sandbox Data — PIEAS Finalist Team (Alibaba Cloud AI Hackathon)
+Salutation: Dear Engr. Mirza Azaz Baig (Chief Executive Officer, QESCO) and Director General (IT / MIS, QESCO),
+
+(Use the same body text above, substituting HESCO / SEPCO / QESCO as appropriate, signed with Official Email: bscs2453@pieas.edu.pk)
