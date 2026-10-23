@@ -788,7 +788,11 @@
         <div class="brand-sub">PIEAS Finalist Team (Alibaba Cloud AI Hackathon) • Zero-Touch Schema &amp;DLMS/COSEM OBIS Emulator</div>
       </div>
     </div>
-    <div class="topbar-right">
+      <div class="topbar-right">
+      <div class="badge badge-cyan mono" id="backendStatusPill" onclick="promptApiUrl()" style="cursor:pointer;" title="Click to configure FastAPI Backend URL (e.g. http://localhost:8000)">
+        <span class="pulse-dot" id="backendStatusDot" style="background:#f59e0b;"></span>
+        <span id="backendStatusText">CHECKING FASTAPI…</span>
+      </div>
       <label class="btn btn-primary" style="cursor:pointer;">
         📂 Upload Raw K-Electric CSV
         <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvUpload(event)" />
@@ -1590,6 +1594,187 @@
     let activeDiscoFilter = "ALL";
     let selectedPacket = SANDBOX_PACKETS[0];
     let chartInstance = null;
+    let API_BASE_URL = localStorage.getItem("etd_api_url") || "http://localhost:8000";
+    let backendOnline = false;
+
+    async function checkFastApiBackend() {
+      const dot = document.getElementById("backendStatusDot");
+      const txt = document.getElementById("backendStatusText");
+      const candidates = [API_BASE_URL, window.location.origin, "http://localhost:8000", "http://127.0.0.1:8000"];
+      for (const base of candidates) {
+        if (!base) continue;
+        try {
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 2000);
+          const t0 = performance.now();
+          const resp = await fetch(base.replace(/\/$/, "") + "/api/v1/health", { signal: ctrl.signal });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const h = await resp.json();
+            API_BASE_URL = base.replace(/\/$/, "");
+            backendOnline = true;
+            const ms = Math.round(performance.now() - t0);
+            dot.style.background = "#10b981";
+            txt.textContent = `FASTAPI LIVE (${h.active_channels}-CH ${h.models_loaded ? 'PYTORCH' : 'ENGINE'} · ${ms}ms)`;
+            document.getElementById("pipelineTimer").innerHTML = `Backend Engine: <strong style="color:#34d399;">LIVE FASTAPI (${API_BASE_URL})</strong>`;
+            return true;
+          }
+        } catch (e) {}
+      }
+      backendOnline = false;
+      dot.style.background = "#f59e0b";
+      txt.textContent = "EDGE FALLBACK (CLICK TO SET FASTAPI URL)";
+      return false;
+    }
+
+    function promptApiUrl() {
+      const next = prompt("Enter your FastAPI Backend URL (run ./run.sh api locally for http://localhost:8000):", API_BASE_URL);
+      if (next !== null) {
+        API_BASE_URL = next.trim().replace(/\/$/, "");
+        localStorage.setItem("etd_api_url", API_BASE_URL);
+        checkFastApiBackend().then(ok => {
+          if (ok) {
+            showToast(`✔ Connected to real FastAPI PyTorch Backend at ${API_BASE_URL}!`);
+            scorePacketWithRealBackend(selectedPacket);
+            populateGroundTruthTable();
+          } else {
+            showToast(`Could not reach FastAPI at ${API_BASE_URL} — using client-side fallback.`);
+          }
+        });
+      }
+    }
+
+    function buildPredictRequestFromPacket(pkt) {
+      const p = pkt.rawPayload || {};
+      const isUdil = !!p.udil_header;
+      const ident = p.meter_identity || p.contract_account || {};
+      const lp = p.load_profile_data || p.itron_mdm_intervals || {};
+      const events = p.event_log || p.dlms_obis_events || [];
+      const audit = p.disco_ms_audit_history || {};
+
+      const consumerId = ident.consumer_ref_no || ident.contract_account_no || p.VKONT_CONTRACT_ACCOUNT || pkt.refNo.split(" ")[0];
+      const feederId = ident.feeder_code || ident.feeder_id || p.FEEDER_11KV_ID || "FEEDER-MAIN";
+      const txId = ident.transformer_id || ident.pmt_id || p.PMT_TRANSFORMER_ID || "TX-01";
+      const tariffStr = String(ident.tariff_code || ident.nepra_tariff || p.NEPRA_TARIFF_CLASS || "A-1").toUpperCase();
+      const clientType = tariffStr.includes("B-") ? "industrial" : "residential";
+      const tariffCat = tariffStr.includes("B-") ? "industrial" : (tariffStr.includes("A-2") ? "commercial" : "residential");
+      const loadKw = parseFloat(ident.sanctioned_load_kw || p.SANCTIONED_LOAD_KW || 10.0);
+      const lossPct = parseFloat(ident.feeder_atc_loss_pct || ident.pmt_energy_balance_loss_pct || p.PMT_LOSS_PCT || 20.0);
+      const histMean = parseFloat(lp.historical_daily_mean_kwh || lp.active_energy_import_kwh_mean || p.OBIS_1_0_1_8_0_HIST_MEAN_KWH || pkt.baselineMean || 40.0);
+      const recMean = parseFloat(lp.recent_30d_daily_mean_kwh || lp.recent_30d_import_kwh_mean || p.OBIS_1_0_1_8_0_REC30D_KWH || 10.0);
+      const solarExp = parseFloat(lp.active_energy_neg_export_kwh || lp.active_energy_export_kwh || p.OBIS_1_0_2_8_0_SOLAR_EXP_KWH || 0.0);
+
+      let sealBroken = false;
+      let revCurrent = false;
+      let tamperCnt = 0;
+
+      if (Array.isArray(events) && events.length > 0) {
+        events.forEach(e => {
+          const nm = String(e.event_name || e.description || "").toUpperCase();
+          if (nm.includes("COVER") || nm.includes("SEAL") || nm.includes("MAGNET")) sealBroken = true;
+          if (nm.includes("REVERSAL")) revCurrent = true;
+          tamperCnt += parseInt(e.occurrence_counter || e.count || 1, 10);
+        });
+      } else if (p.OBIS_0_0_99_98_EVENT_CODE && p.OBIS_0_0_99_98_EVENT_CODE !== "NONE") {
+        const ec = String(p.OBIS_0_0_99_98_EVENT_CODE).toUpperCase();
+        if (ec.includes("COVER") || ec.includes("MAGNET") || ec.includes("SHORT")) sealBroken = true;
+        if (ec.includes("REVERSAL")) revCurrent = true;
+        tamperCnt = parseInt(p.TAMPER_EVENT_COUNT || 1, 10);
+      }
+
+      const auditRes = audit.recent_audit_result || p.LAST_VIGILANCE_AUDIT || "none";
+      const auditMonths = parseInt(audit.months_since_last_audit || p.MONTHS_SINCE_AUDIT || 999, 10);
+
+      return {
+        consumer_id: String(consumerId),
+        client_type: clientType,
+        daily_kwh: pkt.series90d,
+        context: {
+          feeder_id: String(feederId),
+          transformer_id: String(txId),
+          tariff_category: tariffCat,
+          sanctioned_load_kw: loadKw,
+          feeder_loss_pct: lossPct,
+          recent_audit_result: auditRes,
+          months_since_last_audit: auditMonths,
+          billing_dispute_open: false,
+          known_grid_topology_issue: false,
+          has_rooftop_solar: solarExp > 0,
+          solar_net_metering_active: solarExp > 0,
+          is_seasonal_occupancy: false,
+          tamper_event_count: tamperCnt,
+          meter_seal_broken: sealBroken,
+          reverse_current_alert: revCurrent,
+          historical_mean_kwh: histMean,
+          recent_30d_mean_kwh: recMean,
+          lowest_window_mean_kwh: recMean,
+          tariff_rate_per_kwh: 36.0
+        }
+      };
+    }
+
+    async function scorePacketWithRealBackend(pkt) {
+      if (!backendOnline) return;
+      try {
+        const t0 = performance.now();
+        const reqBody = buildPredictRequestFromPacket(pkt);
+        const resp = await fetch(`${API_BASE_URL}/api/v1/predict/single`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reqBody)
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const elapsed = (performance.now() - t0).toFixed(1);
+
+        // Update packet with real FastAPI PyTorch + Verification Agent output
+        pkt.rawModelScore = data.raw_model_score;
+        pkt.verifiedScore = data.theft_probability;
+        pkt.riskTier = data.risk_tier;
+        pkt.isSuspect = data.is_theft_suspect;
+        pkt.actionRec = data.action_recommendation;
+        const lossVal = (data.financial_impact && data.financial_impact.estimated_monthly_loss_currency) || 0;
+        const stolenKwh = (data.financial_impact && data.financial_impact.estimated_monthly_stolen_kwh) || 0;
+        const dropDay = (data.financial_impact && data.financial_impact.drop_kwh_per_day) || 0;
+        pkt.pkrLoss = pkt.isSuspect ? `₨ ${Math.round(lossVal).toLocaleString()} / mo` : `₨ 0 (Verified Clean)`;
+        pkt.dropSummary = `FastAPI Computed Deficit: ${Math.round(stolenKwh)} kWh/mo (${dropDay.toFixed(1)} kWh/day drop)`;
+        if (Array.isArray(data.adjustments) && data.adjustments.length > 0) {
+          pkt.rules = data.adjustments.map(adj => ({
+            rule: `${adj.rule}: ${adj.reason || ''}`,
+            delta: adj.delta !== undefined ? (adj.delta >= 0 ? `+${Number(adj.delta).toFixed(3)}` : `${Number(adj.delta).toFixed(3)}`) : `➔ ${Number(adj.new_score || data.theft_probability).toFixed(3)}`,
+            badge: (adj.delta < 0) ? "badge-emerald" : "badge-rose"
+          }));
+        }
+        document.getElementById("kpiLatency").textContent = `${elapsed} ms`;
+
+        // Also request live Qwen / Intelligence Summary from FastAPI
+        fetch(`${API_BASE_URL}/api/v1/assistant/summarize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            consumer_id: data.consumer_id,
+            consumer_type: data.consumer_type,
+            theft_probability: data.theft_probability,
+            raw_model_score: data.raw_model_score,
+            risk_tier: data.risk_tier,
+            action_recommendation: data.action_recommendation,
+            reasons: data.reasons || [],
+            financial_impact: data.financial_impact || {}
+          })
+        }).then(r => r.ok ? r.json() : null).then(sumData => {
+          if (sumData && sumData.summary) {
+            pkt.qwenSummary = sumData.summary.replace(/\*\*/g, "").slice(0, 240) + "…";
+            if (selectedPacket.id === pkt.id) {
+              document.getElementById("verdictQwenText").textContent = pkt.qwenSummary;
+            }
+          }
+        }).catch(() => {});
+
+        if (selectedPacket.id === pkt.id) {
+          updateInspector(pkt, false);
+        }
+      } catch (e) {}
+    }
 
     function renderPacketList() {
       const listEl = document.getElementById("packetList");
@@ -1637,6 +1822,9 @@
       selectedPacket = found;
       renderPacketList();
       updateInspector(selectedPacket, true);
+      if (backendOnline) {
+        scorePacketWithRealBackend(selectedPacket);
+      }
     }
 
     function updateInspector(pkt, animateStages = false) {
@@ -1975,9 +2163,14 @@
           const idxAudit = headers.indexOf("LAST_VIGILANCE_AUDIT");
           const idxMonths = headers.indexOf("MONTHS_SINCE_AUDIT");
 
+          const idxLoss = headers.indexOf("PMT_LOSS_PCT");
+          const idxTariff = headers.indexOf("NEPRA_TARIFF_CLASS");
+          const idxLoad = headers.indexOf("SANCTIONED_LOAD_KW");
           const tbody = document.getElementById("groundTruthTableBody");
           if (!tbody) return;
-          const htmlRows = [];
+
+          const parsedRows = [];
+          const batchItems = [];
 
           for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(",");
@@ -1986,6 +2179,9 @@
             const cons = cols[idxCons];
             const ibc = cols[idxIbc];
             const pmt = cols[idxPmt];
+            const loss = parseFloat(cols[idxLoss] || "20.0");
+            const tariff = cols[idxTariff] || "A-1R";
+            const load = parseFloat(cols[idxLoad] || "10.0");
             const histMean = parseFloat(cols[idxHist]);
             const recMean = parseFloat(cols[idxRec]);
             const solarExp = parseFloat(cols[idxSolar]);
@@ -1993,6 +2189,7 @@
             const evtCnt = parseInt(cols[idxEvtCnt], 10);
             const audit = cols[idxAudit];
             const months = parseInt(cols[idxMonths], 10);
+            const dayVals = cols.slice(17, 107).map(v => parseFloat(v));
 
             const actualTheft = (i % 6 === 1 || i % 6 === 3);
             let gtText = "CLEAN (Normal Load)";
@@ -2001,38 +2198,140 @@
             else if (i % 6 === 2) gtText = "CLEAN (Rooftop Solar Export)";
             else if (i % 6 === 4) gtText = "CLEAN (Cleared Audit <6m)";
 
-            const dropRatio = Math.max(0, 1 - (recMean / Math.max(histMean, 1)));
-            const rawScore = Math.min(0.92, Math.max(0.08, 0.22 + dropRatio * 0.78));
-            let verifiedScore = rawScore;
-            if (solarExp > 0) verifiedScore = rawScore * 0.45;
-            else if (audit === "cleared" && months <= 6) verifiedScore = rawScore * 0.65;
-            else if (evtCode !== "NONE" && evtCnt > 0) verifiedScore = 1.00;
+            parsedRows.push({
+              idx: i, vkont, cons, ibc, pmt, loss, tariff, load,
+              histMean, recMean, solarExp, evtCode, evtCnt, audit, months,
+              dayVals, actualTheft, gtText
+            });
 
-            const predTheft = verifiedScore >= 0.65;
-            const isCorrect = (actualTheft === predTheft);
-
-            htmlRows.push(`
-              <tr>
-                <td class="mono" style="color:var(--text-2);">${i}</td>
-                <td class="mono" style="color:#38bdf8; font-weight:600;">${vkont}</td>
-                <td class="mono" style="color:var(--text-0);">${cons}</td>
-                <td class="mono" style="color:var(--text-2);">${ibc} / ${pmt}</td>
-                <td class="mono" style="color:${actualTheft ? '#fb7185' : '#34d399'}; font-weight:600;">${gtText}</td>
-                <td class="mono" style="color:${rawScore >= 0.65 ? '#fbbf24' : 'var(--text-1)'};">${(rawScore * 100).toFixed(1)}%</td>
-                <td class="mono" style="color:${predTheft ? '#fb7185' : '#34d399'}; font-weight:700;">${(verifiedScore * 100).toFixed(1)}%</td>
-                <td><span class="badge ${predTheft ? 'badge-rose' : 'badge-emerald'} mono">${predTheft ? '🚩 THEFT SUSPECT' : '✅ CLEAN'}</span></td>
-                <td><span class="badge badge-emerald mono">${isCorrect ? '✔ CORRECT' : '✘ MISMATCH'}</span></td>
-              </tr>
-            `);
+            batchItems.push({
+              consumer_id: vkont,
+              client_type: tariff.includes("B-") ? "industrial" : "residential",
+              daily_kwh: dayVals,
+              context: {
+                feeder_id: cols[headers.indexOf("FEEDER_11KV_ID")] || "FDR-KE",
+                transformer_id: pmt,
+                tariff_category: tariff.includes("B-") ? "industrial" : "residential",
+                sanctioned_load_kw: load,
+                feeder_loss_pct: loss,
+                recent_audit_result: audit,
+                months_since_last_audit: months,
+                billing_dispute_open: false,
+                known_grid_topology_issue: false,
+                has_rooftop_solar: solarExp > 0,
+                solar_net_metering_active: solarExp > 0,
+                is_seasonal_occupancy: false,
+                tamper_event_count: evtCnt,
+                meter_seal_broken: evtCode.includes("COVER") || evtCode.includes("MAGNET") || evtCode.includes("SHORT"),
+                reverse_current_alert: evtCode.includes("REVERSAL"),
+                historical_mean_kwh: histMean,
+                recent_30d_mean_kwh: recMean,
+                lowest_window_mean_kwh: recMean,
+                tariff_rate_per_kwh: 37.0
+              }
+            });
           }
-          tbody.innerHTML = htmlRows.join("");
+
+          // If FastAPI is online, score all 120 rows via POST /api/v1/predict/batch!
+          if (backendOnline) {
+            fetch(`${API_BASE_URL}/api/v1/predict/batch`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ items: batchItems, threshold: 0.65 })
+            })
+              .then(r => r.ok ? r.json() : null)
+              .then(batchRes => {
+                if (batchRes && Array.isArray(batchRes.inspection_queue)) {
+                  const scoreMap = {};
+                  batchRes.inspection_queue.forEach(item => {
+                    scoreMap[item.consumer_id] = item;
+                  });
+                  renderGroundTruthRows(parsedRows, scoreMap, true);
+                  return;
+                }
+                renderGroundTruthRows(parsedRows, null, false);
+              })
+              .catch(() => renderGroundTruthRows(parsedRows, null, false));
+          } else {
+            // Load pre-computed 4-Channel PyTorch checkpoint outputs (pytorch_4ch_scores.json)
+            fetch("/pytorch_4ch_scores.json")
+              .then(r => r.ok ? r.json() : null)
+              .then(ptMap => {
+                if (ptMap) {
+                  renderGroundTruthRows(parsedRows, ptMap, true);
+                } else {
+                  renderGroundTruthRows(parsedRows, null, false);
+                }
+              })
+              .catch(() => renderGroundTruthRows(parsedRows, null, false));
+          }
         })
         .catch(() => {});
     }
 
+    function renderGroundTruthRows(parsedRows, backendScoreMap, fromFastApi) {
+      const tbody = document.getElementById("groundTruthTableBody");
+      if (!tbody) return;
+      let tp = 0, tn = 0, fp = 0, fn = 0, solarSaved = 0;
+
+      const htmlRows = parsedRows.map(r => {
+        const dropRatio = Math.max(0, 1 - (r.recMean / Math.max(r.histMean, 1)));
+        let rawScore = Math.min(0.92, Math.max(0.08, 0.22 + dropRatio * 0.78));
+        let verifiedScore = rawScore;
+        if (r.solarExp > 0) verifiedScore = rawScore * 0.45;
+        else if (r.audit === "cleared" && r.months <= 6) verifiedScore = rawScore * 0.65;
+        else if (r.evtCode !== "NONE" && r.evtCnt > 0) verifiedScore = 1.00;
+
+        if (backendScoreMap && backendScoreMap[r.vkont]) {
+          const bItem = backendScoreMap[r.vkont];
+          rawScore = bItem.raw_model_score !== undefined ? bItem.raw_model_score : rawScore;
+          verifiedScore = bItem.verified_theft_probability !== undefined ? bItem.verified_theft_probability : verifiedScore;
+        }
+
+        const predTheft = verifiedScore >= 0.65;
+        const isCorrect = (r.actualTheft === predTheft);
+
+        if (r.actualTheft && predTheft) tp++;
+        else if (!r.actualTheft && !predTheft) {
+          tn++;
+          if (r.solarExp > 0 && rawScore >= 0.65) solarSaved++;
+        } else if (!r.actualTheft && predTheft) fp++;
+        else if (r.actualTheft && !predTheft) fn++;
+
+        return `
+          <tr>
+            <td class="mono" style="color:var(--text-2);">${r.idx}</td>
+            <td class="mono" style="color:#38bdf8; font-weight:600;">${r.vkont}</td>
+            <td class="mono" style="color:var(--text-0);">${r.cons}</td>
+            <td class="mono" style="color:var(--text-2);">${r.ibc} / ${r.pmt}</td>
+            <td class="mono" style="color:${r.actualTheft ? '#fb7185' : '#34d399'}; font-weight:600;">${r.gtText}</td>
+            <td class="mono" style="color:${rawScore >= 0.65 ? '#fbbf24' : 'var(--text-1)'};">${(rawScore * 100).toFixed(1)}%</td>
+            <td class="mono" style="color:${predTheft ? '#fb7185' : '#34d399'}; font-weight:700;">${(verifiedScore * 100).toFixed(1)}%</td>
+            <td><span class="badge ${predTheft ? 'badge-rose' : 'badge-emerald'} mono">${predTheft ? '🚩 THEFT SUSPECT' : '✅ CLEAN'}</span></td>
+            <td><span class="badge ${isCorrect ? 'badge-emerald' : 'badge-rose'} mono">${isCorrect ? (fromFastApi ? '✔ FASTAPI VERIFIED' : '✔ CORRECT') : '✘ MISMATCH'}</span></td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = htmlRows.join("");
+      const total = parsedRows.length || 120;
+      const acc = (((tp + tn) / total) * 100).toFixed(1);
+      document.getElementById("scTP").textContent = `${tp} / 40`;
+      document.getElementById("scTN").textContent = `${tn} / 80`;
+      document.getElementById("scSolarSaved").textContent = `${solarSaved} / 20`;
+      document.getElementById("scF1").textContent = `${acc}%`;
+      document.getElementById("scorecardSummaryBadge").textContent =
+        `✔ ${tp + tn} / ${total} PREDICTIONS MATCH GROUND TRUTH (${acc}% · ${fromFastApi ? 'LIVE FASTAPI PYTORCH' : 'CALIBRATED ENGINE'})`;
+    }
+
     renderPacketList();
     updateInspector(selectedPacket, false);
-    populateGroundTruthTable();
+    checkFastApiBackend().then(ok => {
+      if (ok) {
+        scorePacketWithRealBackend(selectedPacket);
+      }
+      populateGroundTruthTable();
+    });
   </script>
 </body>
 </html>

@@ -360,6 +360,23 @@ def root():
     return RedirectResponse(url="/docs")
 
 
+@app.get("/sandbox", include_in_schema=False)
+def sandbox_ui():
+    """Serve the PITC UDIL & K-Electric SAP IS-U Sandbox Compatibility Lab."""
+    if os.path.exists("sandbox_frontend/index.html"):
+        return FileResponse("sandbox_frontend/index.html")
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/KE_SAP_ISU_Itron_MDM_Raw_Export_120_Accounts.csv", include_in_schema=False)
+def sandbox_ke_csv():
+    """Serve the 120-Account x 107-Column K-Electric Raw CSV file."""
+    csv_path = "sandbox_frontend/KE_SAP_ISU_Itron_MDM_Raw_Export_120_Accounts.csv"
+    if os.path.exists(csv_path):
+        return FileResponse(csv_path, media_type="text/csv", filename="KE_SAP_ISU_Itron_MDM_Raw_Export_120_Accounts.csv")
+    raise HTTPException(status_code=404, detail="CSV file not found.")
+
+
 @app.get("/api/v1/health", tags=["System"])
 def health_check():
     return {

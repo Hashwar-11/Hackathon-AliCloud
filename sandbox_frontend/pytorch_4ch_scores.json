@@ -1,0 +1,1932 @@
+{
+  "0400102945319": {
+    "raw_model_score": 0.9094,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 34077.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400102952638": {
+    "raw_model_score": 0.9406,
+    "verified_theft_probability": 0.4515,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 51948.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400102959957": {
+    "raw_model_score": 0.9923,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 32634.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400102967276": {
+    "raw_model_score": 0.9738,
+    "verified_theft_probability": 0.7303,
+    "risk_tier": "HIGH",
+    "is_theft_suspect": true,
+    "action_recommendation": "SCHEDULE_FIELD_INSPECTION",
+    "estimated_monthly_loss_currency": 16539.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.75
+      }
+    ]
+  },
+  "0400102974595": {
+    "raw_model_score": 0.3291,
+    "verified_theft_probability": 0.3291,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400102981914": {
+    "raw_model_score": 0.3573,
+    "verified_theft_probability": 0.4466,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400102989233": {
+    "raw_model_score": 0.9092,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 40626.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400102996552": {
+    "raw_model_score": 0.8624,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 49839.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103003871": {
+    "raw_model_score": 0.9925,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 30747.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103011190": {
+    "raw_model_score": 0.9927,
+    "verified_theft_probability": 0.6204,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 17205.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103018509": {
+    "raw_model_score": 0.978,
+    "verified_theft_probability": 0.978,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103025828": {
+    "raw_model_score": 0.9758,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103033147": {
+    "raw_model_score": 0.8454,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 48063.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103040466": {
+    "raw_model_score": 0.9621,
+    "verified_theft_probability": 0.4618,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 53169.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103047785": {
+    "raw_model_score": 0.9949,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 33078.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103055104": {
+    "raw_model_score": 0.9793,
+    "verified_theft_probability": 0.4897,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 19647.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.5
+      }
+    ]
+  },
+  "0400103062423": {
+    "raw_model_score": 0.3636,
+    "verified_theft_probability": 0.3636,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 12543.0,
+    "adjustments": []
+  },
+  "0400103069742": {
+    "raw_model_score": 0.3884,
+    "verified_theft_probability": 0.4855,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 12210.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103077061": {
+    "raw_model_score": 0.8023,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 34632.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103084380": {
+    "raw_model_score": 0.9469,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 46842.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103091699": {
+    "raw_model_score": 0.9809,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 26640.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103099018": {
+    "raw_model_score": 0.9797,
+    "verified_theft_probability": 0.4898,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 16206.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.5
+      }
+    ]
+  },
+  "0400103106337": {
+    "raw_model_score": 0.9592,
+    "verified_theft_probability": 0.9592,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 333.0,
+    "adjustments": []
+  },
+  "0400103113656": {
+    "raw_model_score": 0.5317,
+    "verified_theft_probability": 0.6647,
+    "risk_tier": "HIGH",
+    "is_theft_suspect": true,
+    "action_recommendation": "SCHEDULE_FIELD_INSPECTION",
+    "estimated_monthly_loss_currency": 1887.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103120975": {
+    "raw_model_score": 0.9174,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 37407.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103128294": {
+    "raw_model_score": 0.9064,
+    "verified_theft_probability": 0.4351,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 51615.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103135613": {
+    "raw_model_score": 0.9959,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 30747.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103142932": {
+    "raw_model_score": 0.9726,
+    "verified_theft_probability": 0.7294,
+    "risk_tier": "HIGH",
+    "is_theft_suspect": true,
+    "action_recommendation": "SCHEDULE_FIELD_INSPECTION",
+    "estimated_monthly_loss_currency": 20202.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.75
+      }
+    ]
+  },
+  "0400103150251": {
+    "raw_model_score": 0.3409,
+    "verified_theft_probability": 0.3409,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103157570": {
+    "raw_model_score": 0.3161,
+    "verified_theft_probability": 0.3161,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 2886.0,
+    "adjustments": []
+  },
+  "0400103164889": {
+    "raw_model_score": 0.9435,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 37185.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103172208": {
+    "raw_model_score": 0.8184,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 53724.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103179527": {
+    "raw_model_score": 0.9899,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 27417.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103186846": {
+    "raw_model_score": 0.9723,
+    "verified_theft_probability": 0.3646,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 21645.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.375
+      }
+    ]
+  },
+  "0400103194165": {
+    "raw_model_score": 0.8039,
+    "verified_theft_probability": 0.8039,
+    "risk_tier": "HIGH",
+    "is_theft_suspect": true,
+    "action_recommendation": "SCHEDULE_FIELD_INSPECTION",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103201484": {
+    "raw_model_score": 0.7299,
+    "verified_theft_probability": 0.9124,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103208803": {
+    "raw_model_score": 0.8937,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 39405.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103216122": {
+    "raw_model_score": 0.9327,
+    "verified_theft_probability": 0.4477,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 47286.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103223441": {
+    "raw_model_score": 0.9717,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 27861.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103230760": {
+    "raw_model_score": 0.9876,
+    "verified_theft_probability": 0.3704,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 16983.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.375
+      }
+    ]
+  },
+  "0400103238079": {
+    "raw_model_score": 0.4923,
+    "verified_theft_probability": 0.4923,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103245398": {
+    "raw_model_score": 0.4029,
+    "verified_theft_probability": 0.5036,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 3330.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103252717": {
+    "raw_model_score": 0.9066,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 46620.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103260036": {
+    "raw_model_score": 0.9514,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 47508.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103267355": {
+    "raw_model_score": 0.9866,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 29526.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103274674": {
+    "raw_model_score": 0.9844,
+    "verified_theft_probability": 0.6152,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 18759.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103281993": {
+    "raw_model_score": 0.9501,
+    "verified_theft_probability": 0.9501,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 888.0,
+    "adjustments": []
+  },
+  "0400103289312": {
+    "raw_model_score": 0.9137,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 1221.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103296631": {
+    "raw_model_score": 0.826,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 37296.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103303950": {
+    "raw_model_score": 0.9522,
+    "verified_theft_probability": 0.457,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 39627.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103311269": {
+    "raw_model_score": 0.9802,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 26973.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103318588": {
+    "raw_model_score": 0.9178,
+    "verified_theft_probability": 0.5736,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 21312.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103325907": {
+    "raw_model_score": 0.349,
+    "verified_theft_probability": 0.349,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 10656.0,
+    "adjustments": []
+  },
+  "0400103333226": {
+    "raw_model_score": 0.4028,
+    "verified_theft_probability": 0.5035,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103340545": {
+    "raw_model_score": 0.9099,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 43956.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103347864": {
+    "raw_model_score": 0.9219,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 52392.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103355183": {
+    "raw_model_score": 0.9976,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 35187.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103362502": {
+    "raw_model_score": 0.9868,
+    "verified_theft_probability": 0.6168,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 22533.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103369821": {
+    "raw_model_score": 0.9941,
+    "verified_theft_probability": 0.9941,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 1332.0,
+    "adjustments": []
+  },
+  "0400103377140": {
+    "raw_model_score": 0.9235,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 999.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103384459": {
+    "raw_model_score": 0.8448,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 39738.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103391778": {
+    "raw_model_score": 0.9525,
+    "verified_theft_probability": 0.4572,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 39738.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103399097": {
+    "raw_model_score": 0.9657,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 28305.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103406416": {
+    "raw_model_score": 0.9376,
+    "verified_theft_probability": 0.3516,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 20868.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.375
+      }
+    ]
+  },
+  "0400103413735": {
+    "raw_model_score": 0.3495,
+    "verified_theft_probability": 0.3495,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103421054": {
+    "raw_model_score": 0.3995,
+    "verified_theft_probability": 0.4994,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 14208.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103428373": {
+    "raw_model_score": 0.9433,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 43956.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103435692": {
+    "raw_model_score": 0.932,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 45066.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103443011": {
+    "raw_model_score": 0.992,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 26640.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103450330": {
+    "raw_model_score": 0.9739,
+    "verified_theft_probability": 0.3652,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 20757.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.375
+      }
+    ]
+  },
+  "0400103457649": {
+    "raw_model_score": 0.1651,
+    "verified_theft_probability": 0.1651,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 1665.0,
+    "adjustments": []
+  },
+  "0400103464968": {
+    "raw_model_score": 0.93,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 444.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103472287": {
+    "raw_model_score": 0.8811,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 37074.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103479606": {
+    "raw_model_score": 0.9295,
+    "verified_theft_probability": 0.4462,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 42624.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103486925": {
+    "raw_model_score": 0.9572,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 28083.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103494244": {
+    "raw_model_score": 0.9781,
+    "verified_theft_probability": 0.7336,
+    "risk_tier": "HIGH",
+    "is_theft_suspect": true,
+    "action_recommendation": "SCHEDULE_FIELD_INSPECTION",
+    "estimated_monthly_loss_currency": 21090.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.75
+      }
+    ]
+  },
+  "0400103501563": {
+    "raw_model_score": 0.3987,
+    "verified_theft_probability": 0.3987,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103508882": {
+    "raw_model_score": 0.4291,
+    "verified_theft_probability": 0.5364,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 24087.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103516201": {
+    "raw_model_score": 0.8744,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 34743.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103523520": {
+    "raw_model_score": 0.9308,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 44289.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103530839": {
+    "raw_model_score": 0.9874,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 35853.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103538158": {
+    "raw_model_score": 0.8919,
+    "verified_theft_probability": 0.4459,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 18315.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.5
+      }
+    ]
+  },
+  "0400103545477": {
+    "raw_model_score": 0.9701,
+    "verified_theft_probability": 0.9701,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103552796": {
+    "raw_model_score": 0.9862,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 888.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103560115": {
+    "raw_model_score": 0.8634,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 44400.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103567434": {
+    "raw_model_score": 0.8061,
+    "verified_theft_probability": 0.3869,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 42180.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103574753": {
+    "raw_model_score": 0.9854,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 32190.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103582072": {
+    "raw_model_score": 0.9178,
+    "verified_theft_probability": 0.5737,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 21312.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103589391": {
+    "raw_model_score": 0.329,
+    "verified_theft_probability": 0.329,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103596710": {
+    "raw_model_score": 0.3871,
+    "verified_theft_probability": 0.4839,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103604029": {
+    "raw_model_score": 0.7978,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 42180.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103611348": {
+    "raw_model_score": 0.9699,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 52059.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103618667": {
+    "raw_model_score": 0.9956,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 32967.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103625986": {
+    "raw_model_score": 0.9703,
+    "verified_theft_probability": 0.6064,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 21534.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103633305": {
+    "raw_model_score": 0.2719,
+    "verified_theft_probability": 0.2719,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 444.0,
+    "adjustments": []
+  },
+  "0400103640624": {
+    "raw_model_score": 0.9807,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 222.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103647943": {
+    "raw_model_score": 0.9371,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 30969.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103655262": {
+    "raw_model_score": 0.7323,
+    "verified_theft_probability": 0.3515,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 40404.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103662581": {
+    "raw_model_score": 0.9842,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 29859.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103669900": {
+    "raw_model_score": 0.9783,
+    "verified_theft_probability": 0.6115,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 19314.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103677219": {
+    "raw_model_score": 0.4483,
+    "verified_theft_probability": 0.4483,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103684538": {
+    "raw_model_score": 0.4072,
+    "verified_theft_probability": 0.509,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103691857": {
+    "raw_model_score": 0.912,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 45288.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103699176": {
+    "raw_model_score": 0.9468,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 50505.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103706495": {
+    "raw_model_score": 0.9823,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 33966.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103713814": {
+    "raw_model_score": 0.9818,
+    "verified_theft_probability": 0.4909,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 18537.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.5
+      }
+    ]
+  },
+  "0400103721133": {
+    "raw_model_score": 0.2217,
+    "verified_theft_probability": 0.2217,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103728452": {
+    "raw_model_score": 0.927,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103735771": {
+    "raw_model_score": 0.9294,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 31968.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103743090": {
+    "raw_model_score": 0.898,
+    "verified_theft_probability": 0.431,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 44511.0,
+    "adjustments": [
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103750409": {
+    "raw_model_score": 0.9848,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 28416.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103757728": {
+    "raw_model_score": 0.9554,
+    "verified_theft_probability": 0.5971,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 19869.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103765047": {
+    "raw_model_score": 0.4244,
+    "verified_theft_probability": 0.4244,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 11766.0,
+    "adjustments": []
+  },
+  "0400103772366": {
+    "raw_model_score": 0.4178,
+    "verified_theft_probability": 0.5222,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 18426.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      }
+    ]
+  },
+  "0400103779685": {
+    "raw_model_score": 0.4976,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 33078.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103787004": {
+    "raw_model_score": 0.9151,
+    "verified_theft_probability": 0.48,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "VERIFY_SOLAR_INVERTER",
+    "estimated_monthly_loss_currency": 52392.0,
+    "adjustments": [
+      {
+        "rule": "high_loss_feeder_boost",
+        "factor": 1.25
+      },
+      {
+        "rule": "solar_net_metering_suppression",
+        "factor": 0.4
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103794323": {
+    "raw_model_score": 0.9884,
+    "verified_theft_probability": 1.0,
+    "risk_tier": "CRITICAL",
+    "is_theft_suspect": true,
+    "action_recommendation": "DISPATCH_IMMEDIATE_RAID",
+    "estimated_monthly_loss_currency": 27750.0,
+    "adjustments": [
+      {
+        "rule": "critical_hardware_tamper",
+        "override": 0.98
+      },
+      {
+        "rule": "sustained_severe_drop_boost",
+        "factor": 1.2
+      }
+    ]
+  },
+  "0400103801642": {
+    "raw_model_score": 0.9337,
+    "verified_theft_probability": 0.5836,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 18981.0,
+    "adjustments": [
+      {
+        "rule": "audit_cleared_decay",
+        "factor": 0.625
+      }
+    ]
+  },
+  "0400103808961": {
+    "raw_model_score": 0.5552,
+    "verified_theft_probability": 0.5552,
+    "risk_tier": "MEDIUM",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 0.0,
+    "adjustments": []
+  },
+  "0400103816280": {
+    "raw_model_score": 0.1061,
+    "verified_theft_probability": 0.1061,
+    "risk_tier": "LOW",
+    "is_theft_suspect": false,
+    "action_recommendation": "MONITOR",
+    "estimated_monthly_loss_currency": 1110.0,
+    "adjustments": []
+  }
+}
